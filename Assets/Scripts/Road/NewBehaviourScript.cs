@@ -1,16 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
 
-
-public class Network : MonoBehaviour {
-
-	[SerializeField]
-	public Node[] nodes; 
+public class NewBehaviourScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		//nodes = new ArrayList();
+	
 	}
 	
 	// Update is called once per frame
