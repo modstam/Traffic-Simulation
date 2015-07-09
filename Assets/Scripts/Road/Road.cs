@@ -11,7 +11,7 @@ public class Road : MonoBehaviour {
     }
     
     [SerializeField]
-	private Vector3[] points; //This is the points on our road
+	private Node[] points; //This is the points on our road
 	[SerializeField]
 	private BezierControlPointMode[] modes;
 	[SerializeField]
@@ -28,11 +28,11 @@ public class Road : MonoBehaviour {
 	}
 
 	public void Reset(){
-		points = new Vector3[]{
-			new Vector3(1f, 0f, 0f),
-			new Vector3(2f, 0f, 0f),
-			new Vector3(3f, 0f, 0f),
-			new Vector3(4f, 0f, 0f)
+		points = new Node[]{
+			new Node(new Vector3(1f, 0f, 0f)),
+			new Node(new Vector3(2f, 0f, 0f)),
+			new Node(new Vector3(3f, 0f, 0f)),
+			new Node(new Vector3(4f, 0f, 0f))
         };
 
 		modes = new BezierControlPointMode[] {
@@ -51,7 +51,7 @@ public class Road : MonoBehaviour {
 			loop = value;
 			if (value == true) {
 				modes[modes.Length - 1] = modes[0];
-                SetControlPoint(0, points[0]);
+				SetControlPoint(0, points[0].pos);
             }
         }
     }
@@ -64,39 +64,40 @@ public class Road : MonoBehaviour {
 
 
 	public Vector3 GetControlPoint (int index) {
-		return points[index];
+	//	Debug.Log("length: " + points.Length + " , index:" + index );
+		return points[index].pos;
 	}
 
 
 	public void SetControlPoint (int index, Vector3 point) {
 		if (index % 3 == 0) {
-			Vector3 delta = point - points[index];
+			Vector3 delta = point - points[index].pos;
 			if (loop) {
 				if (index == 0) {
-					points[1] += delta;
-					points[points.Length - 2] += delta;
-					points[points.Length - 1] = point;
+					points[1].pos += delta;
+					points[points.Length - 2].pos += delta;
+					points[points.Length - 1].pos = point;
 				}
 				else if (index == points.Length - 1) {
-					points[0] = point;
-					points[1] += delta;
-					points[index - 1] += delta;
+					points[0].pos = point;
+					points[1].pos += delta;
+					points[index - 1].pos += delta;
 				}
 				else {
-					points[index - 1] += delta;
-					points[index + 1] += delta;
+					points[index - 1].pos += delta;
+					points[index + 1].pos += delta;
 				}
             }
             else {
                 if (index > 0) {
-                    points[index - 1] += delta;
+					points[index - 1].pos += delta;
                 }
                 if (index + 1 < points.Length) {
-                    points[index + 1] += delta;
+					points[index + 1].pos += delta;
                 }
             }
         }
-        points[index] = point;
+		points[index].pos = point;
         EnforceMode(index);
     }
 	
@@ -144,12 +145,12 @@ public class Road : MonoBehaviour {
 			}
 		}
 		
-		Vector3 middle = points[middleIndex];
-		Vector3 enforcedTangent = middle - points[fixedIndex];
+		Vector3 middle = points[middleIndex].pos;
+		Vector3 enforcedTangent = middle - points[fixedIndex].pos;
         if (mode == BezierControlPointMode.Aligned) {
-            enforcedTangent = enforcedTangent.normalized * Vector3.Distance(middle, points[enforcedIndex]);
+			enforcedTangent = enforcedTangent.normalized * Vector3.Distance(middle, points[enforcedIndex].pos);
         }
-        points[enforcedIndex] = middle + enforcedTangent;
+		points[enforcedIndex].pos = middle + enforcedTangent;
 	}
 
 	
@@ -168,7 +169,7 @@ public class Road : MonoBehaviour {
         
         //convert to world space
 		return transform.TransformPoint(Bezier(
-			points[i], points[i + 1], points[i + 2], points[i + 3], t));
+			points[i].pos, points[i + 1].pos, points[i + 2].pos, points[i + 3].pos, t));
     }
 
 	public Vector3 Bezier(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
@@ -195,7 +196,7 @@ public class Road : MonoBehaviour {
             t -= i;
             i *= 3;
         }
-        return transform.TransformPoint(GetFirstDerivative(points[0], points[1], points[2], points[3], t)) -
+		return transform.TransformPoint(GetFirstDerivative(points[0].pos, points[1].pos, points[2].pos, points[3].pos, t)) -
 			transform.position;
     }
     
@@ -216,14 +217,14 @@ public class Road : MonoBehaviour {
 
 
 	public void AddRoad () {
-		Vector3 point = points[points.Length - 1];
+		Vector3 point = points[points.Length - 1].pos;
 		Array.Resize(ref points, points.Length + 3);
 		point.x += 1f;
-		points[points.Length - 3] = point;
+		points[points.Length - 3] = new Node(point);
 		point.x += 1f;
-		points[points.Length - 2] = point;
+		points[points.Length - 2] = new Node(point);
 		point.x += 1f;
-        points[points.Length - 1] = point;
+		points[points.Length - 1] = new Node(point);
 
 
 		Array.Resize(ref modes, modes.Length + 1);
@@ -231,7 +232,7 @@ public class Road : MonoBehaviour {
 		EnforceMode(points.Length - 4);
 
 		if (loop) {
-			points[points.Length - 1] = points[0];
+			points[points.Length - 1].pos = points[0].pos;
 			modes[modes.Length - 1] = modes[0];
             EnforceMode(0);
         }
