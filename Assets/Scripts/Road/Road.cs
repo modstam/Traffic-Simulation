@@ -43,6 +43,18 @@ public class Road : MonoBehaviour {
         
     }
 
+	public void Reset(Vector3[] start){
+		if(start.Length == 4){
+			transform.position = start[0]; //reloacate gameobject position to start point
+			points = start;
+
+			modes = new BezierControlPointMode[] {
+				BezierControlPointMode.Free,
+				BezierControlPointMode.Free
+			};
+		}
+	}
+	
 	public bool Loop {
 		get {
 			return loop;
@@ -216,7 +228,17 @@ public class Road : MonoBehaviour {
 
 
 
-	public void AddRoad () {
+	public void AddRoad (int index) {
+
+		if(!(index > 0 && index < points.Length -1)){
+			index = points.Length-1;
+		}
+		else{
+			GameObject newRoad = new GameObject();
+			Road road = newRoad.AddComponent<Road>();
+			road.
+		}
+
 		Vector3 point = points[points.Length - 1].pos;
 		Array.Resize(ref points, points.Length + 3);
 		point.x += 1f;
@@ -225,6 +247,7 @@ public class Road : MonoBehaviour {
 		points[points.Length - 2] = new Node(point);
 		point.x += 1f;
 		points[points.Length - 1] = new Node(point);
+
 
 
 		Array.Resize(ref modes, modes.Length + 1);
@@ -248,5 +271,4 @@ public class Road : MonoBehaviour {
 	public BezierControlPointMode GetControlPointMode (int index) {
 		return modes[(index + 1) / 3];
 	}
-
 }

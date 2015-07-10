@@ -104,7 +104,7 @@ public class RoadInspector : Editor { //Use editor instead of monobehaviour to s
 		}
 		if (GUILayout.Button("Add Road")) {
 			Undo.RecordObject(road, "Add Road");
-			road.AddRoad();
+			road.AddRoad(selectedIndex);
 			EditorUtility.SetDirty(road);
 		}
 	}

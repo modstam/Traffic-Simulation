@@ -22,9 +22,9 @@ public class Node{
 		connections = new Node[0];
 
 	}
-	
 
-	void AddConnection(Node newConnection){
+	public void AddConnection(Node newConnection){
 		Array.Resize(ref connections, connections.Length+1);
+		connections[connections.Length-1] = newConnection;
 	}
 }
