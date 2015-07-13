@@ -1,8 +1,10 @@
-﻿using UnityEngine;
+﻿
+
+using UnityEngine;
 using System.Collections;
 using System;
 
-public class Road : MonoBehaviour {
+public class Road {
 	
 	public enum BezierControlPointMode {
 		Free,
@@ -11,7 +13,7 @@ public class Road : MonoBehaviour {
     }
     
     [SerializeField]
-	private Node[] points; //This is the points on our road
+	public Node[] points; //This is the points on our road
 	[SerializeField]
 	private BezierControlPointMode[] modes;
 	[SerializeField]
@@ -28,12 +30,16 @@ public class Road : MonoBehaviour {
 	}
 
 	public void Reset(){
+		Debug.Log("Reset road");
 		points = new Node[]{
 			new Node(new Vector3(1f, 0f, 0f)),
 			new Node(new Vector3(2f, 0f, 0f)),
 			new Node(new Vector3(3f, 0f, 0f)),
 			new Node(new Vector3(4f, 0f, 0f))
         };
+		AddConnection(0,1);
+		AddConnection(1,2);
+		AddConnection(2,3);
 
 		modes = new BezierControlPointMode[] {
 			BezierControlPointMode.Free,
@@ -43,10 +49,13 @@ public class Road : MonoBehaviour {
         
     }
 
-	public void Reset(Vector3[] start){
+	public void Reset(Node[] start){
 		if(start.Length == 4){
-			transform.position = start[0]; //reloacate gameobject position to start point
 			points = start;
+
+			AddConnection(0,1);
+			AddConnection(1,2);
+			AddConnection(2,3);
 
 			modes = new BezierControlPointMode[] {
 				BezierControlPointMode.Free,
@@ -76,7 +85,8 @@ public class Road : MonoBehaviour {
 
 
 	public Vector3 GetControlPoint (int index) {
-	//	Debug.Log("length: " + points.Length + " , index:" + index );
+		//Debug.Log("length: " + points.Length + " , index:" + index );
+		//Debug.Log (points[index].pos);
 		return points[index].pos;
 	}
 
@@ -166,51 +176,7 @@ public class Road : MonoBehaviour {
 	}
 
 	
-	public Vector3 GetPoint (float t) {
-		int i;
-		if (t >= 1f) {
-			t = 1f;
-			i = points.Length - 4;
-		}
-		else {
-			t = Mathf.Clamp01(t) * RoadCount;
-            i = (int)t;
-            t -= i;
-            i *= 3;
-        }
-        
-        //convert to world space
-		return transform.TransformPoint(Bezier(
-			points[i].pos, points[i + 1].pos, points[i + 2].pos, points[i + 3].pos, t));
-    }
 
-	public Vector3 Bezier(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
-		t = Mathf.Clamp01(t);
-		float oneMinusT = 1f - t;
-		return
-			oneMinusT * oneMinusT * oneMinusT * p0 +
-				3f * oneMinusT * oneMinusT * t * p1 +
-				3f * oneMinusT * t * t * p2 +
-                t * t * t * p3;
-	}
-
-
-	//This is the velocity along the curve
-	public Vector3 GetVelocity (float t) {
-		int i;
-		if (t >= 1f) {
-			t = 1f;
-			i = points.Length - 4;
-		}
-		else {
-			t = Mathf.Clamp01(t) * RoadCount;
-            i = (int)t;
-            t -= i;
-            i *= 3;
-        }
-		return transform.TransformPoint(GetFirstDerivative(points[0].pos, points[1].pos, points[2].pos, points[3].pos, t)) -
-			transform.position;
-    }
     
 
 	public Vector3 GetFirstDerivative (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
@@ -222,43 +188,45 @@ public class Road : MonoBehaviour {
                 3f * t * t * (p3 - p2);
     }
 
-	public Vector3 GetDirection (float t) {
-		return GetVelocity(t).normalized;
-    }
-
-
-
+	
 	public void AddRoad (int index) {
 
 		if(!(index > 0 && index < points.Length -1)){
-			index = points.Length-1;
+			 
+
+			Vector3 point = points[points.Length-1].pos;
+			Array.Resize(ref points, points.Length + 3);
+			point.x += 1f;
+			points[points.Length-3] = new Node(point);
+			point.x += 1f;
+			points[points.Length-2] = new Node(point);
+			point.x += 1f;
+			points[points.Length-1] = new Node(point);
+
+			AddConnection(index, index-1);   //add connnections between all the nodes
+			AddConnection(index-1, index-2);
+					
+			
+			Array.Resize(ref modes, modes.Length + 1);
+			modes[modes.Length - 1] = modes[modes.Length - 2];
+			EnforceMode(points.Length - 4);
+			
+			if (loop) {
+				points[points.Length - 1].pos = points[0].pos;
+				modes[modes.Length - 1] = modes[0];
+				EnforceMode(0);
+			}
+
 		}
 		else{
-			GameObject newRoad = new GameObject();
-			Road road = newRoad.AddComponent<Road>();
-			road.
+
+
+			//TODO : DO SOMETHING
+
 		}
 
-		Vector3 point = points[points.Length - 1].pos;
-		Array.Resize(ref points, points.Length + 3);
-		point.x += 1f;
-		points[points.Length - 3] = new Node(point);
-		point.x += 1f;
-		points[points.Length - 2] = new Node(point);
-		point.x += 1f;
-		points[points.Length - 1] = new Node(point);
 
 
-
-		Array.Resize(ref modes, modes.Length + 1);
-		modes[modes.Length - 1] = modes[modes.Length - 2];
-		EnforceMode(points.Length - 4);
-
-		if (loop) {
-			points[points.Length - 1].pos = points[0].pos;
-			modes[modes.Length - 1] = modes[0];
-            EnforceMode(0);
-        }
     }
 
 	public int RoadCount {
@@ -269,6 +237,16 @@ public class Road : MonoBehaviour {
 
 
 	public BezierControlPointMode GetControlPointMode (int index) {
+		//Debug.Log ("index: " + index + " size: " +  modes.Length);
 		return modes[(index + 1) / 3];
+	}
+
+	public void AddConnection(int index, Road road){
+		points[index].AddConnection(road.points[0]);
+		road.points[0].AddConnection(points[index]);
+	}
+	public void AddConnection(int index1, int index2){
+		points[index1].AddConnection(points[index2]);
+		points[index2].AddConnection(points[index1]);
 	}
 }

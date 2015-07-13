@@ -11,11 +11,13 @@ public class Node{
 
 	public Node(Vector3 pos){
 		this.pos = pos;
+		connections = new Node[0];
 	}
 
 	public Node(Vector3 pos, Quaternion rot){
 		this.pos = pos;
 		this.rot = rot;
+		connections = new Node[0];
 	}
 	
 	public void Reset(){
