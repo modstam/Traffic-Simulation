@@ -62,6 +62,8 @@ public class Road {
 				BezierControlPointMode.Free
 			};
 		}
+		else throw new Exception(@"[Reset(Node[] start) -> Argument MUST be of length 4]");
+
 	}
 	
 	public bool Loop {
@@ -85,9 +87,17 @@ public class Road {
 
 
 	public Vector3 GetControlPoint (int index) {
-		//Debug.Log("length: " + points.Length + " , index:" + index );
+
 		//Debug.Log (points[index].pos);
-		return points[index].pos;
+
+		try{
+			return points[index].pos;
+		}
+		catch(Exception e){
+			Debug.Log (e.StackTrace);
+			Debug.Log("GetControlPoint error: length: " + points.Length + " , index:" + index );
+		}
+		return new Vector3(0,0,0);
 	}
 
 

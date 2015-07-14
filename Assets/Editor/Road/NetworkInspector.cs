@@ -6,7 +6,7 @@ using System.Collections;
 public class NetworkInspector : Editor { //Use editor instead of monobehaviour to set the correct context (extending editor)
 	
 	public Network network; 
-	public int roadIndex;
+	public int selectedRoad = -1;
 	private Transform handleTransform;
 	private Quaternion handleRotation;
 	
@@ -50,14 +50,14 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 
 
 		for(int r = 0; r < network.roads.Length; ++r){
-			roadIndex = r;
-			Road road = network.GetRoad(roadIndex);
-			Vector3 p0 = ShowPoint(0,true);
+		//		roadIndex = r;
+			Road road = network.GetRoad(r);
+			Vector3 p0 = ShowPoint(r, 0,true);
 
 			for (int i = 1; i < road.ControlPointCount; i += 3) {
-				Vector3 p1 = ShowPoint(i, false);
-				Vector3 p2 = ShowPoint(i + 1, false);
-				Vector3 p3 = ShowPoint(i + 2, true);
+				Vector3 p1 = ShowPoint(r,i, false);
+				Vector3 p2 = ShowPoint(r,i + 1, false);
+				Vector3 p3 = ShowPoint(r,i + 2, true);
 				
 				Handles.color = Color.gray;
 				Handles.DrawLine(p0, p1);
@@ -65,18 +65,14 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				
 				Handles.DrawBezier(p0, p3, p1, p2, Color.white, null, 2f);
 				p0 = p3;
-			}
-			
-			//ShowDirections();
-
+			}		
+			//ShowDirections(r);
 		}
-
-
 
 	}
 	
 	
-	private void ShowDirections () {
+	private void ShowDirections (int roadIndex) {
 		Road road = network.GetRoad(roadIndex);
 		Handles.color = Color.green;
 		Vector3 point = network.GetPoint(road,0f);
@@ -88,7 +84,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		}
 	}
 	
-	private Vector3 ShowPoint(int index, bool canAddRoad){
+	private Vector3 ShowPoint(int roadIndex, int index, bool canAddRoad){
 		Road road = network.GetRoad(roadIndex);
 		Vector3 point = handleTransform.TransformPoint(road.GetControlPoint(index));
 		float size = HandleUtility.GetHandleSize(point);
@@ -100,9 +96,10 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		
 		if (Handles.Button(point, handleRotation, size * handleSize, size * pickSize, Handles.DotCap)) {
 			selectedIndex = index;
+			selectedRoad = roadIndex;
 			Repaint ();
 		}
-		if (selectedIndex == index) {
+		if (selectedIndex == index && selectedRoad == roadIndex) {
 			EditorGUI.BeginChangeCheck();
 			point = Handles.DoPositionHandle(point, handleRotation);
 			if (EditorGUI.EndChangeCheck()) {
@@ -117,7 +114,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	
 	//Draw add-button
 	public override void OnInspectorGUI () {
-		Road road = network.GetRoad(roadIndex);
+		Road road = network.GetRoad(selectedRoad);
 		EditorGUI.BeginChangeCheck();
 		bool loop = EditorGUILayout.Toggle("Loop", road.Loop);
 		if (EditorGUI.EndChangeCheck()) {
@@ -126,24 +123,26 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			road.Loop = loop;
 		}
 		if (selectedIndex >= 0 && selectedIndex < road.ControlPointCount) {
-			DrawSelectedPointInspector();
+			DrawSelectedPointInspector(selectedRoad);
 		}
 		if (GUILayout.Button("Add Road")) {
 			Undo.RecordObject(network, "Add Road");
-			network.AddRoad(roadIndex,selectedIndex);
+			network.AddRoad(selectedRoad,selectedIndex);
 			EditorUtility.SetDirty(network);
 		}
 	}
 	
-	private void DrawSelectedPointInspector() {
+	private void DrawSelectedPointInspector(int roadIndex) {
 		Road road = network.GetRoad(roadIndex);
 		GUILayout.Label("Selected Point");
 		EditorGUI.BeginChangeCheck();
 		Vector3 point = EditorGUILayout.Vector3Field("Position", road.GetControlPoint(selectedIndex));
-		if (EditorGUI.EndChangeCheck()) {
+		Debug.Log("RdIdx: " + roadIndex + " ptIdx: " + selectedIndex);
+		if (EditorGUI.EndChangeCheck()) { 
 			Undo.RecordObject(network, "Move Point");
 			EditorUtility.SetDirty(network);
 			road.SetControlPoint(selectedIndex, point);
+
 		}
 		
 		EditorGUI.BeginChangeCheck();

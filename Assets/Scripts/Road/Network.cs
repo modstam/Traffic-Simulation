@@ -22,11 +22,31 @@ public class Network : MonoBehaviour {
 		if(pointIndex == roads[roadIndex].points.Length-1) roads[roadIndex].AddRoad(pointIndex); 
 		else
 		{
+			Debug.Log ("index: " + pointIndex);
 
-			//TODO fix connections, correct spawnpoints etc etc
 			Array.Resize(ref roads, roads.Length+1);
 			roads[roads.Length-1] = new Road();
-			roads[roads.Length-1].Reset();
+
+			Vector3 point = roads[roadIndex].points[pointIndex].pos;
+
+			Debug.Log(point);
+
+			point.x += 1;
+			Node node1 = new Node(point);
+			point.x += 1;
+			Node node2 = new Node(point);
+			point.x += 1;
+			Node node3 = new Node(point);
+
+
+			Node[] nodes = new Node[]{
+					roads[roadIndex].points[pointIndex],
+					node1,
+					node2,
+					node3
+			};
+
+			roads[roads.Length-1].Reset(nodes);
 
 		}
 
