@@ -29,4 +29,12 @@ public class Node{
 		Array.Resize(ref connections, connections.Length+1);
 		connections[connections.Length-1] = newConnection;
 	}
+
+	public int NumConnections(){
+		return connections.Length;
+	}
+
+	public Node GetConnection(int index){
+		return connections[index];
+	}
 }

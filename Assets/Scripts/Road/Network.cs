@@ -55,6 +55,10 @@ public class Network : MonoBehaviour {
 	public Road GetRoad(int index){
 		return roads[index];
 	}
+
+	public Node GetNode(int roadIndex, int nodeIndex){
+		return GetRoad(roadIndex).points[nodeIndex];
+	}
 	
 	// Update is called once per frame
 	void Update () {

@@ -107,6 +107,18 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				EditorUtility.SetDirty(network);
 				road.SetControlPoint(index,handleTransform.InverseTransformPoint(point));
 			}
+	
+			//draw all the connecting points in a different color
+			int conLength = network.GetNode(selectedRoad,selectedIndex).NumConnections();
+			Vector3 selectedNodePos = network.GetNode(selectedRoad,selectedIndex).pos;
+			Handles.color = Color.green;
+			for(int i = 0; i < conLength; ++i){
+				Node conNode = network.GetNode(selectedRoad,selectedIndex).GetConnection(i);
+				Vector3 conPointTransformed = handleTransform.TransformPoint(conNode.pos);
+				float circleSize = 0.025f*( Vector3.Distance(SceneView.currentDrawingSceneView.camera.transform.position, conPointTransformed));
+				Handles.CircleCap(0, conPointTransformed, SceneView.currentDrawingSceneView.rotation, circleSize);
+
+			}
 		}
 		return point;
 	}
@@ -114,26 +126,34 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	
 	//Draw add-button
 	public override void OnInspectorGUI () {
-		Road road = network.GetRoad(selectedRoad);
-		EditorGUI.BeginChangeCheck();
-		bool loop = EditorGUILayout.Toggle("Loop", road.Loop);
-		if (EditorGUI.EndChangeCheck()) {
-			Undo.RecordObject(network, "Toggle Loop");
-			EditorUtility.SetDirty(network);
-			road.Loop = loop;
-		}
-		if (selectedIndex >= 0 && selectedIndex < road.ControlPointCount) {
-			DrawSelectedPointInspector(selectedRoad);
-		}
-		if (GUILayout.Button("Add Road")) {
-			Undo.RecordObject(network, "Add Road");
-			network.AddRoad(selectedRoad,selectedIndex);
-			EditorUtility.SetDirty(network);
+		if(selectedRoad >= 0){
+
+			Road road = network.GetRoad(selectedRoad);
+			EditorGUI.BeginChangeCheck();
+			bool loop = EditorGUILayout.Toggle("Loop", road.Loop);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(network, "Toggle Loop");
+				EditorUtility.SetDirty(network);
+				road.Loop = loop;
+			}
+			if (selectedIndex >= 0 && selectedIndex < road.ControlPointCount) {
+				DrawSelectedPointInspector(selectedRoad);
+			}
+			if(selectedIndex % 3 == 0){
+				if (GUILayout.Button("Add Road")) {
+					Undo.RecordObject(network, "Add Road");
+					network.AddRoad(selectedRoad,selectedIndex);
+					EditorUtility.SetDirty(network);
+				}
+			}
+
 		}
 	}
 	
 	private void DrawSelectedPointInspector(int roadIndex) {
 		Road road = network.GetRoad(roadIndex);
+
+		//Selected point in inspector
 		GUILayout.Label("Selected Point");
 		EditorGUI.BeginChangeCheck();
 		Vector3 point = EditorGUILayout.Vector3Field("Position", road.GetControlPoint(selectedIndex));
@@ -153,6 +173,11 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			road.SetControlPointMode(selectedIndex, mode);
 			EditorUtility.SetDirty(network);
 		}
+
+
+		//Number of connections in inspector
+		EditorGUILayout.IntField("Connections", network.GetNode(roadIndex,selectedIndex).NumConnections());
+
 	}
 	
 	

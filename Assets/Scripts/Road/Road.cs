@@ -37,9 +37,7 @@ public class Road {
 			new Node(new Vector3(3f, 0f, 0f)),
 			new Node(new Vector3(4f, 0f, 0f))
         };
-		AddConnection(0,1);
-		AddConnection(1,2);
-		AddConnection(2,3);
+		AddConnection(0,3);
 
 		modes = new BezierControlPointMode[] {
 			BezierControlPointMode.Free,
@@ -53,9 +51,7 @@ public class Road {
 		if(start.Length == 4){
 			points = start;
 
-			AddConnection(0,1);
-			AddConnection(1,2);
-			AddConnection(2,3);
+			AddConnection(0,3);
 
 			modes = new BezierControlPointMode[] {
 				BezierControlPointMode.Free,
@@ -213,9 +209,7 @@ public class Road {
 			point.x += 1f;
 			points[points.Length-1] = new Node(point);
 
-			AddConnection(index, index-1);   //add connnections between all the nodes
-			AddConnection(index-1, index-2);
-					
+			AddConnection(points.Length-1, points.Length-4);   //add connnections between all the nodes					
 			
 			Array.Resize(ref modes, modes.Length + 1);
 			modes[modes.Length - 1] = modes[modes.Length - 2];
