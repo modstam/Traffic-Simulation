@@ -132,12 +132,16 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				Node closestNode = new Node(new Vector3(0,0,0));
 				int clsNdIdx = -1; 
 				int clsRdIdx = -1;
+				Node selectedNode = network.GetNode(selectedRoad,selectedIndex);
 				for(int r = 0; r < network.roads.Length; ++r){
 					for(int n = 0; n < network.GetRoad(r).points.Length; n += 3){
 
-						if(r == selectedRoad && n == selectedIndex) continue;
-					
+						if(r == selectedRoad && n == selectedIndex ) continue;
+
 						curNode = network.GetNode(r,n);
+
+						if(curNode== selectedNode) continue;
+											
 						float curDistance = Vector3.Distance(curNode.pos, selectedNodePos); 
 						if(curDistance < closestDistance){
 							closestDistance = curDistance;
@@ -190,6 +194,8 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 						Undo.RecordObject(network, "Connect Node");
 						network.Merge(selectedRoad, selectedIndex, closestRoadIdx, closestNodeIdx );
 						EditorUtility.SetDirty(network);
+						closestNodeIdx = -1;
+						closestRoadIdx = -1;
 						
 					}
 				}
