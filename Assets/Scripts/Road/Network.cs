@@ -126,8 +126,21 @@ public class Network : MonoBehaviour {
 		return GetVelocity(road,t).normalized;
 	}
 
-	public void Merge(int roadIndex1, int roadIndex2, int nodeIndex1, int nodeIndex2){
-		Debug.Log ("Merging r"+ roadIndex1 + "n"+nodeIndex1 + "and r"+ roadIndex2 + "n"+nodeIndex2); 
+	public void Merge(int fromRoad, int fromNode, int toRoad, int toNode){
+		Debug.Log ("Merging r"+ fromRoad + "n"+fromNode + " and r"+ toRoad + "n"+toNode);
+		Road selectedRoad = GetRoad(fromRoad);
+		Road mergeToRoad = GetRoad(toRoad);
+
+		mergeToRoad.AddConnection(toNode,GetNode(fromRoad,fromNode).connections.ToArray());
+
+		Node selectedNode = GetNode(fromRoad,fromNode);
+		for(int i = 0; i < selectedNode.NumConnections(); ++i ){
+			selectedNode.GetConnection(i).RemoveConnection(selectedNode);
+		}
+
+		selectedRoad.points[fromNode] = mergeToRoad.points[toNode];
+
+
 	}
 
 	public void UnMerge(int roadIndex, int nodeIndex){

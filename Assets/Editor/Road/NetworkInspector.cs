@@ -7,6 +7,8 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	
 	public Network network; 
 	public int selectedRoad = -1;
+	public int closestRoadIdx = -1;
+	public int closestNodeIdx = -1;
 	private Transform handleTransform;
 	private Quaternion handleRotation;
 	
@@ -99,7 +101,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			selectedRoad = roadIndex;
 			Repaint ();
 		}
-		if (selectedIndex == index && selectedRoad == roadIndex) {
+		if (selectedIndex == index && selectedRoad == roadIndex ) {
 			EditorGUI.BeginChangeCheck();
 			point = Handles.DoPositionHandle(point, handleRotation);
 			if (EditorGUI.EndChangeCheck()) {
@@ -107,42 +109,52 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				EditorUtility.SetDirty(network);
 				road.SetControlPoint(index,handleTransform.InverseTransformPoint(point));
 			}
-	
-			//draw all the connecting points in a different color
-			int conLength = network.GetNode(selectedRoad,selectedIndex).NumConnections();
-			Vector3 selectedNodePos = network.GetNode(selectedRoad,selectedIndex).pos;
-			Handles.color = Color.green;
-			for(int i = 0; i < conLength; ++i){
-				Node conNode = network.GetNode(selectedRoad,selectedIndex).GetConnection(i);
-				Vector3 conPointTransformed = handleTransform.TransformPoint(conNode.pos);
-				float circleSize = 0.025f*( Vector3.Distance(SceneView.currentDrawingSceneView.camera.transform.position, conPointTransformed));
-				Handles.CircleCap(0, conPointTransformed, SceneView.currentDrawingSceneView.rotation, circleSize);
+		
 
-			}
+			if(selectedIndex % 3 == 0){
+				//draw all the connecting points in a different color
+				int conLength = network.GetNode(selectedRoad,selectedIndex).NumConnections();
+				Vector3 selectedNodePos = network.GetNode(selectedRoad,selectedIndex).pos;
+				Handles.color = Color.green;
+				for(int i = 0; i < conLength; ++i){
+					Node conNode = network.GetNode(selectedRoad,selectedIndex).GetConnection(i);
+					Vector3 conPointTransformed = handleTransform.TransformPoint(conNode.pos);
+					float circleSize = 0.025f*( Vector3.Distance(SceneView.currentDrawingSceneView.camera.transform.position, conPointTransformed));
+					Handles.CircleCap(0, conPointTransformed, SceneView.currentDrawingSceneView.rotation, circleSize);
+
+				}
 
 
-			//Lets find the closest point to the selected point and draw it
-			Handles.color = Color.cyan; //let blue denote the node to connect to
-			float closestDistance = float.MaxValue;
-			Node curNode;
-			Node closestNode = new Node(new Vector3(0,0,0));
-			for(int r = 0; r < network.roads.Length; ++r){
-				for(int n = 0; n < network.GetRoad(r).points.Length; n += 3){
+				//Lets find the closest point to the selected point and draw it
+				Handles.color = Color.cyan; //let blue denote the node to connect to
+				float closestDistance = float.MaxValue;
+				Node curNode;
+				Node closestNode = new Node(new Vector3(0,0,0));
+				int clsNdIdx = -1; 
+				int clsRdIdx = -1;
+				for(int r = 0; r < network.roads.Length; ++r){
+					for(int n = 0; n < network.GetRoad(r).points.Length; n += 3){
 
-					if(r == selectedRoad && n == selectedIndex) continue;
-				
-					curNode = network.GetNode(r,n);
-					float curDistance = Vector3.Distance(curNode.pos, selectedNodePos); 
-					if(curDistance < closestDistance){
-						closestDistance = curDistance;
-						closestNode = curNode;
+						if(r == selectedRoad && n == selectedIndex) continue;
+					
+						curNode = network.GetNode(r,n);
+						float curDistance = Vector3.Distance(curNode.pos, selectedNodePos); 
+						if(curDistance < closestDistance){
+							closestDistance = curDistance;
+							closestNode = curNode;
+							clsNdIdx = n;
+							clsRdIdx = r;
+						}
 					}
 				}
-			}
 
-			Vector3 closePointTransformed = handleTransform.TransformPoint(closestNode.pos);
-			float closeCircleSize = 0.035f * ( Vector3.Distance(SceneView.currentDrawingSceneView.camera.transform.position, closePointTransformed));
-			Handles.CircleCap(0, closePointTransformed, SceneView.currentDrawingSceneView.rotation, closeCircleSize);
+				Vector3 closePointTransformed = handleTransform.TransformPoint(closestNode.pos);
+				float closeCircleSize = 0.035f * ( Vector3.Distance(SceneView.currentDrawingSceneView.camera.transform.position, closePointTransformed));
+				Handles.CircleCap(0, closePointTransformed, SceneView.currentDrawingSceneView.rotation, closeCircleSize);
+				closestNodeIdx = clsNdIdx;
+				closestRoadIdx = clsRdIdx;
+				//Debug.Log ("Closest node: r" + closestRoadIdx + "n" + closestNodeIdx);
+			}
 
 		}
 		return point;
@@ -176,7 +188,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				if( node.NumConnections() == 1){
 					if (GUILayout.Button("Connect Node")) {
 						Undo.RecordObject(network, "Connect Node");
-						network.Merge(selectedRoad,selectedIndex, 0, 0);
+						network.Merge(selectedRoad, selectedIndex, closestRoadIdx, closestNodeIdx );
 						EditorUtility.SetDirty(network);
 						
 					}

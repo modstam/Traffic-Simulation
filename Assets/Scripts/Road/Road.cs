@@ -245,9 +245,11 @@ public class Road {
 		return modes[(index + 1) / 3];
 	}
 
-	public void AddConnection(int index, Road road){
-		points[index].AddConnection(road.points[0]);
-		road.points[0].AddConnection(points[index]);
+	public void AddConnection( int index, Node[] nodes){
+		for( int i = 0; i < nodes.Length; ++i){
+			points[index].AddConnection(nodes[i]);
+		}
+
 	}
 	public void AddConnection(int index1, int index2){
 		points[index1].AddConnection(points[index2]);
