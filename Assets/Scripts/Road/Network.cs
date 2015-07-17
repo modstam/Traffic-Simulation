@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 public class Network : MonoBehaviour {
 
-	public Road[] roads;
+	public List<Road> roads;
 
 	// Use this for initialization
 	void Start () {
@@ -12,8 +13,8 @@ public class Network : MonoBehaviour {
 	}
 
 	public void Reset(){
-		roads = new Road[1];
-		roads[0] = new Road();
+		roads = new List<Road>();
+		roads.Add (new Road());
 		roads[0].Reset();
 	}
 
@@ -24,8 +25,7 @@ public class Network : MonoBehaviour {
 		{
 			Debug.Log ("index: " + pointIndex);
 
-			Array.Resize(ref roads, roads.Length+1);
-			roads[roads.Length-1] = new Road();
+			roads.Add(new Road());
 
 			Vector3 point = roads[roadIndex].points[pointIndex].pos;
 
@@ -46,7 +46,7 @@ public class Network : MonoBehaviour {
 					node3
 			};
 
-			roads[roads.Length-1].Reset(nodes);
+			roads[roads.Count-1].Reset(nodes);
 
 		}
 

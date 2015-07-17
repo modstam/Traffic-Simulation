@@ -51,7 +51,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			handleTransform.rotation : Quaternion.identity;
 
 
-		for(int r = 0; r < network.roads.Length; ++r){
+		for(int r = 0; r < network.roads.Count; ++r){
 		//		roadIndex = r;
 			Road road = network.GetRoad(r);
 			Vector3 p0 = ShowPoint(r, 0,true);
@@ -133,7 +133,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				int clsNdIdx = -1; 
 				int clsRdIdx = -1;
 				Node selectedNode = network.GetNode(selectedRoad,selectedIndex);
-				for(int r = 0; r < network.roads.Length; ++r){
+				for(int r = 0; r < network.roads.Count; ++r){
 					for(int n = 0; n < network.GetRoad(r).points.Length; n += 3){
 
 						if(r == selectedRoad && n == selectedIndex ) continue;
