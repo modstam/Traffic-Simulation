@@ -7,6 +7,8 @@ public class Network : MonoBehaviour {
 
 	public List<Road> roads;
 
+	public int numCars = 0;
+
 	// Use this for initialization
 	void Start () {
 		
@@ -50,6 +52,12 @@ public class Network : MonoBehaviour {
 
 		}
 
+	}
+	public bool addCars(int numCars){
+		Debug.Log ("Resizing car population to " + numCars);
+
+
+		return false;
 	}
 
 	public Road GetRoad(int index){

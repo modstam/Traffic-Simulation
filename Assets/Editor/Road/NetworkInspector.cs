@@ -167,15 +167,19 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	
 	//Draw add-button
 	public override void OnInspectorGUI () {
+
+
 		if(selectedRoad >= 0){
 
 			Road road = network.GetRoad(selectedRoad);
 			EditorGUI.BeginChangeCheck();
+			int cars = EditorGUILayout.IntField ("Number of Cars", network.numCars);
 			bool loop = EditorGUILayout.Toggle("Loop", road.Loop);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(network, "Toggle Loop");
 				EditorUtility.SetDirty(network);
 				road.Loop = loop;
+				network.addCars(cars);
 			}
 			if (selectedIndex >= 0 && selectedIndex < road.ControlPointCount) {
 				DrawSelectedPointInspector(selectedRoad);
@@ -218,7 +222,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		GUILayout.Label("Selected Point");
 		EditorGUI.BeginChangeCheck();
 		Vector3 point = EditorGUILayout.Vector3Field("Position", road.GetControlPoint(selectedIndex));
-		Debug.Log("RdIdx: " + roadIndex + " ptIdx: " + selectedIndex);
+		//Debug.Log("RdIdx: " + roadIndex + " ptIdx: " + selectedIndex);
 		if (EditorGUI.EndChangeCheck()) { 
 			Undo.RecordObject(network, "Move Point");
 			EditorUtility.SetDirty(network);
