@@ -2,10 +2,11 @@
 using UnityEditor;
 using System.Collections;
 
+[System.Serializable]
 [CustomEditor (typeof(Network))] //This lets unity know that we want to use this class to inspect road-objects in the editor
 public class NetworkInspector : Editor { //Use editor instead of monobehaviour to set the correct context (extending editor)
-	
-	public Network network; 
+	[SerializeField]
+	Network network; 
 	public int selectedRoad = -1;
 	public int closestRoadIdx = -1;
 	public int closestNodeIdx = -1;
@@ -29,11 +30,15 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	
 	
 	void OnEnable(){
+
+
 		network = (Network)target;
-		SceneView.onSceneGUIDelegate -= OnScene;
-		SceneView.onSceneGUIDelegate += OnScene;
-		
+		if(network == null){
+			Debug.Log("No network to target");
+		}
 	}
+
+
 	private void OnScene(SceneView sceneview)
 	{
 		if(this)OnSceneGUI();
@@ -73,7 +78,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 
 	}
 	
-	
+	/**
 	private void ShowDirections (int roadIndex) {
 		Road road = network.GetRoad(roadIndex);
 		Handles.color = Color.green;
@@ -85,15 +90,16 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			Handles.DrawLine(point, point + network.GetDirection(road,i / (float)steps) * directionScale);
 		}
 	}
+	**/
 	
 	private Vector3 ShowPoint(int roadIndex, int index, bool canAddRoad){
 		Road road = network.GetRoad(roadIndex);
-		Vector3 point = handleTransform.TransformPoint(road.GetControlPoint(index));
+		Vector3 point = handleTransform.TransformPoint(network.nodes[road.GetControlPointIndex(index)].pos);
 		float size = HandleUtility.GetHandleSize(point);
 		if (index == 0) {
 			size *= 2f;
 		}
-		if(canAddRoad)Handles.color = modeColors[(int)road.GetControlPointMode(index)];
+		if(canAddRoad)Handles.color = modeColors[(int)Bezier.GetControlPointMode(network,roadIndex,index)];
 		else Handles.color = Color.magenta;
 		
 		if (Handles.Button(point, handleRotation, size * handleSize, size * pickSize, Handles.DotCap)) {
@@ -107,7 +113,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(network, "Move Point");
 				EditorUtility.SetDirty(network);
-				road.SetControlPoint(index,handleTransform.InverseTransformPoint(point));
+				Bezier.SetControlPoint(network, roadIndex, index,handleTransform.InverseTransformPoint(point));
 			}
 		
 
@@ -117,7 +123,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				Vector3 selectedNodePos = network.GetNode(selectedRoad,selectedIndex).pos;
 				Handles.color = Color.green;
 				for(int i = 0; i < conLength; ++i){
-					Node conNode = network.GetNode(selectedRoad,selectedIndex).GetConnection(i);
+					Node conNode = network.GetNode(selectedRoad,selectedIndex).GetConnectionNode(network, i);
 					Vector3 conPointTransformed = handleTransform.TransformPoint(conNode.pos);
 					float circleSize = 0.025f*( Vector3.Distance(SceneView.currentDrawingSceneView.camera.transform.position, conPointTransformed));
 					Handles.CircleCap(0, conPointTransformed, SceneView.currentDrawingSceneView.rotation, circleSize);
@@ -134,7 +140,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				int clsRdIdx = -1;
 				Node selectedNode = network.GetNode(selectedRoad,selectedIndex);
 				for(int r = 0; r < network.roads.Count; ++r){
-					for(int n = 0; n < network.GetRoad(r).points.Length; n += 3){
+					for(int n = 0; n < network.GetRoad(r).nodeIndexes.Count; n += 3){
 
 						if(r == selectedRoad && n == selectedIndex ) continue;
 
@@ -174,11 +180,11 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			Road road = network.GetRoad(selectedRoad);
 			EditorGUI.BeginChangeCheck();
 			int cars = EditorGUILayout.IntField ("Number of Cars", network.numCars);
-			bool loop = EditorGUILayout.Toggle("Loop", road.Loop);
+			//bool loop = EditorGUILayout.Toggle("Loop", road.Loop);
 			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(network, "Toggle Loop");
+			//	Undo.RecordObject(network, "Toggle Loop");
 				EditorUtility.SetDirty(network);
-				road.Loop = loop;
+			//	road.Loop = loop;
 				network.addCars(cars);
 			}
 			if (selectedIndex >= 0 && selectedIndex < road.ControlPointCount) {
@@ -187,6 +193,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			if(selectedIndex % 3 == 0){
 				if (GUILayout.Button("Add Road")) {
 					Undo.RecordObject(network, "Add Road");
+					Debug.Log (selectedRoad + "," +  selectedIndex);
 					network.AddRoad(selectedRoad,selectedIndex);
 					EditorUtility.SetDirty(network);
 				}
@@ -221,21 +228,21 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		//Selected point in inspector
 		GUILayout.Label("Selected Point");
 		EditorGUI.BeginChangeCheck();
-		Vector3 point = EditorGUILayout.Vector3Field("Position", road.GetControlPoint(selectedIndex));
+		Vector3 point = EditorGUILayout.Vector3Field("Position", network.nodes[road.GetControlPointIndex(selectedIndex)].pos);
 		//Debug.Log("RdIdx: " + roadIndex + " ptIdx: " + selectedIndex);
 		if (EditorGUI.EndChangeCheck()) { 
 			Undo.RecordObject(network, "Move Point");
 			EditorUtility.SetDirty(network);
-			road.SetControlPoint(selectedIndex, point);
+			Bezier.SetControlPoint(network,roadIndex, selectedIndex, point);
 
 		}
 		
 		EditorGUI.BeginChangeCheck();
-		Road.BezierControlPointMode mode = (Road.BezierControlPointMode)
-			EditorGUILayout.EnumPopup("Mode", road.GetControlPointMode(selectedIndex));
+		Bezier.BezierControlPointMode mode = (Bezier.BezierControlPointMode)
+			EditorGUILayout.EnumPopup("Mode", Bezier.GetControlPointMode(network,roadIndex,selectedIndex));
 		if (EditorGUI.EndChangeCheck()) {
 			Undo.RecordObject(network, "Change Point Mode");
-			road.SetControlPointMode(selectedIndex, mode);
+			Bezier.SetControlPointMode(network,roadIndex, selectedIndex, mode);
 			EditorUtility.SetDirty(network);
 		}
 

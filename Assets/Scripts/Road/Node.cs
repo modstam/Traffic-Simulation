@@ -2,43 +2,55 @@
 using System.Collections.Generic;
 using System;
 
+[System.Serializable]
 public class Node{
 
-	
-	public List<Node> connections;
+	[SerializeField]
+	public List<int> connections;
+
+	[SerializeField]
 	public Vector3 pos;
+
+	[SerializeField]
 	public Quaternion rot;
 
 	public Node(Vector3 pos){
 		this.pos = pos;
-		connections = new List<Node>();
+		connections = new List<int>();
 	}
 
 	public Node(Vector3 pos, Quaternion rot){
 		this.pos = pos;
 		this.rot = rot;
-		connections = new List<Node>();
+		connections = new List<int>();
 	}
 	
 	public void Reset(){
-		connections = new List<Node>();
-
+		connections = new List<int>();
 	}
 
-	public void AddConnection(Node newConnection){
-		if(!connections.Contains(newConnection))
-			connections.Add (newConnection);
+	public void AddConnection(int nodeindex){
+		if (!connections.Contains (nodeindex))
+			connections.Add (nodeindex);
 	}
+
+	public void RemoveConnection(int nodeindex){
+		if (connections.Contains (nodeindex))
+			connections.Remove (nodeindex);
+	}
+
 
 	public int NumConnections(){
 		return connections.Count;
 	}
 
-	public Node GetConnection(int index){
-		return connections[index];
+	public int GetConnectionIndex(int connectionIndex){
+		return connections[connectionIndex];
 	}
 
-	public void RemoveConnection(Node node){
-		connections.Remove(node);
+	public Node GetConnectionNode(Network network, int connectionIndex){
+		return network.nodes[connections[connectionIndex]];
 	}
+
+	
 }
