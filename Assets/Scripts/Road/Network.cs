@@ -7,6 +7,11 @@ public class Network : MonoBehaviour {
 
 	public List<Road> roads;
 
+    void Awake()
+    {
+
+    }
+
 	// Use this for initialization
 	void Start () {
 		
