@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
+[System.Serializable]
 [ExecuteInEditMode]
 public class Simulator : MonoBehaviour {
 	

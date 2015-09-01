@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections.Generic;
 
 public static class Bezier{
@@ -10,14 +11,14 @@ public static class Bezier{
 		Mirrored
 	}
 
-	public static Vector3 GetPoint (Network network, Road road, float t) {
+	public static Vector3 GetPoint (Network network, Edge edge, float t) {
 		int i;
 		if (t >= 1f) {
 			t = 1f;
-			i = road.nodeIndexes.Count - 4;
+			i = 4;
 		}
 		else {
-			t = Mathf.Clamp01(t) * road.nodeCount;
+			t = Mathf.Clamp01(t) * 4;
 			i = (int)t;
 			t -= i;
 			i *= 3;
@@ -25,10 +26,10 @@ public static class Bezier{
 		
 		//convert to world space
 		return network.transform.TransformPoint(BezierCurve(
-			network.nodes[road.nodeIndexes[i]].pos, 
-			network.nodes[road.nodeIndexes[i + 1]].pos, 
-			network.nodes[road.nodeIndexes[i + 2]].pos, 
-			network.nodes[road.nodeIndexes[i + 3]].pos, 
+			network.nodes[edge.n0].pos, 
+			network.nodes[edge.c0].pos, 
+		    network.nodes[edge.c1].pos, 
+		    network.nodes[edge.n1].pos, 
 			t
 			));
 	}
@@ -43,50 +44,6 @@ public static class Bezier{
 				t * t * t * p3;
 	}
 
-	
-
-	public static void EnforceMode (Network network, int road, int index) {
-		List<Node> points = network.roads[road].GetRoadNodes(network); 
-		
-		int modeIndex = (index + 1) / 3;
-		//Debug.Log (index + " : " + modeIndex + " : " +  network.roads [road].modes.Length + " : " + network.roads[road].nodeIndexes.Count);
-
-		BezierControlPointMode mode = network.roads[road].modes[modeIndex];
-	
-		if (mode == BezierControlPointMode.Free || (modeIndex == 0 || modeIndex == network.roads[road].modes.Length - 1)) {
-			return;
-		}
-		
-		int middleIndex = modeIndex * 3;
-		int fixedIndex, enforcedIndex;
-		if (index <= middleIndex) {
-			fixedIndex = middleIndex - 1;
-			if (fixedIndex < 0) {
-				fixedIndex = network.roads[road].nodeIndexes.Count - 2;
-			}
-			enforcedIndex = middleIndex + 1;
-			if (enforcedIndex >= network.roads[road].nodeIndexes.Count) {
-				enforcedIndex = 1;
-			}
-		}
-		else {
-			fixedIndex = middleIndex + 1;
-			if (fixedIndex >= network.roads[road].nodeIndexes.Count) {
-				fixedIndex = 1;
-			}
-			enforcedIndex = middleIndex - 1;
-			if (enforcedIndex < 0) {
-				enforcedIndex = network.roads[road].nodeIndexes.Count - 2;
-			}
-		}
-		
-		Vector3 middle = points[middleIndex].pos;
-		Vector3 enforcedTangent = middle - points[fixedIndex].pos;
-		if (mode == BezierControlPointMode.Aligned) {
-			enforcedTangent = enforcedTangent.normalized * Vector3.Distance(middle, points[enforcedIndex].pos);
-		}
-		points[enforcedIndex].pos = middle + enforcedTangent;
-	}
 
 
 	public static Vector3 GetFirstDerivative (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
@@ -98,36 +55,29 @@ public static class Bezier{
 				3f * t * t * (p3 - p2);
 	}
 
-
-	public static BezierControlPointMode GetControlPointMode (Network network, int road, int pointindex) {
-		//Debug.Log ("index: " + index + " size: " +  modes.Length);
-		return network.roads[road].modes[(pointindex + 1) / 3];
-	}
-
-
-
-	public static void SetControlPoint (Network network, int road, int pointindex, Vector3 point) {
-		List<Node> points = network.roads[road].GetRoadNodes(network); 
-
-		if (pointindex % 3 == 0) {
-			Vector3 delta = point - points[pointindex].pos;
-			
-			if (pointindex > 0) {
-				points[pointindex - 1].pos += delta;
-			}
-			if (pointindex+ 1 < network.roads[road].nodeIndexes.Count) {
-				points[pointindex + 1].pos += delta;
-			}
-		}
-		points[pointindex].pos = point;
-		EnforceMode(network, road, pointindex);
-	}
 	
-	public static void SetControlPointMode (Network network, int road, int pointindex, BezierControlPointMode mode) {
-		int modeIndex = (pointindex + 1) / 3;
-		network.roads[road].modes[modeIndex] = mode;
 
-		EnforceMode(network, road, pointindex);
+	public static void SetControlPoint (Network network, Edge edge, Node node, Vector3 point) {
+
+		Vector3 delta = point - node.pos;
+
+		if (node == network.nodes[edge.n0] || node == network.nodes[edge.n1] ) {
+			//	node.pos += delta;
+			network.nodes[edge.c0].pos += delta;
+			network.nodes[edge.c1].pos += delta;
+	
+		}
+
+
+		else if (node == network.nodes[edge.c0]) {
+			network.nodes[edge.c0].pos += delta;
+		}
+		else if (node == network.nodes[edge.c1]) {
+			network.nodes[edge.c1].pos += delta;
+		}
+
+		node.pos = point;
+		//EnforceMode(network, edge, pointindex);
 	}
 
 

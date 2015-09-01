@@ -14,15 +14,20 @@ public class Node{
 	[SerializeField]
 	public Quaternion rot;
 
+	[SerializeField]
+	public bool isControlPoint;
+
 	public Node(Vector3 pos){
 		this.pos = pos;
 		connections = new List<int>();
+		isControlPoint = false;
 	}
 
 	public Node(Vector3 pos, Quaternion rot){
 		this.pos = pos;
 		this.rot = rot;
 		connections = new List<int>();
+		isControlPoint = false;
 	}
 	
 	public void Reset(){
