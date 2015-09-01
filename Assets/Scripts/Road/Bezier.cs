@@ -25,8 +25,6 @@ public static class Bezier{
 		
 		//convert to world space
 		return network.transform.TransformPoint(BezierCurve(
-			network,
-			road,
 			network.nodes[road.nodeIndexes[i]].pos, 
 			network.nodes[road.nodeIndexes[i + 1]].pos, 
 			network.nodes[road.nodeIndexes[i + 2]].pos, 
@@ -35,7 +33,7 @@ public static class Bezier{
 			));
 	}
 	
-	public static Vector3 BezierCurve(Network network, Road road,Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
+	public static Vector3 BezierCurve(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
 		t = Mathf.Clamp01(t);
 		float oneMinusT = 1f - t;
 		return

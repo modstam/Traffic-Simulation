@@ -180,4 +180,11 @@ public class Network : MonoBehaviour {
 
 	}
 
+	public List<Edge> pathTo(Node source, Node destination){
+
+		return new List<Edge>();
+	}
+
+
+
 }
