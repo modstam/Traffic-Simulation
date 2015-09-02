@@ -28,8 +28,9 @@ public class EdgeMatrix : ISerializationCallbackReceiver {
 		get{
 			string key = x + "," + y;
 			Edge val;
-			edges.TryGetValue(key, out val);
-			return val;
+			if(edges.TryGetValue(key, out val))return val;
+			else return null;
+			
 		}
 		set{
 			string key = x + "," + y;

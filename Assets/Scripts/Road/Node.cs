@@ -57,5 +57,9 @@ public class Node{
 		return network.nodes[connections[connectionIndex]];
 	}
 
+	public bool HasConnection(int index){
+		return connections.Contains (index);
+	}
+
 	
 }

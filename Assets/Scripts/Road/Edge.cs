@@ -14,6 +14,10 @@ public class Edge{
 	public int c0; //control 0
 	[SerializeField]
 	public int c1; //control 1
+	[SerializeField]
+	public bool reverse = false;
+
+
 
 	public Edge(){
 
@@ -23,6 +27,14 @@ public class Edge{
 	public Vector3 Progress(float t){
 
 		return new Vector3();
+	}
+
+	public override string ToString ()
+	{	
+		if(reverse)
+			return  "" + n1 + "->" + n0 + " (R)";
+		else
+			return  "" +n0 + "->" + n1;
 	}
 
 }

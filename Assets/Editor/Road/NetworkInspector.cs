@@ -119,6 +119,12 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			selectedNode = node;
 			Repaint ();
 		}
+
+		GUIStyle style = new GUIStyle ();
+		style.normal.textColor = Color.white;
+		style.fontSize = 15;
+		Handles.Label (point + new Vector3(0,0.5f,0), "" + index,style );
+
 		if (selectedIndex == index && !selectedNode.isControlPoint) {
 			EditorGUI.BeginChangeCheck();
 			point = Handles.DoPositionHandle(point, handleRotation);

@@ -18,6 +18,7 @@ public class Network : MonoBehaviour {
 	public bool DEBUG_PRINT = false;
 	
 
+
 	// Use this for initialization
 	void Start () {
 
@@ -62,7 +63,7 @@ public class Network : MonoBehaviour {
 		//add entry for startnode to endnode connection
 		edges [0, 3] = edge;
 
-		AddConnection(0,1);
+		AddConnection(0,3	);
 
 
 	}
@@ -196,6 +197,113 @@ public class Network : MonoBehaviour {
 		//TODO
 		
 		return false;
+	}
+
+	public List<Edge> PathTo(int source, int destination){
+		/**
+		 *	this A* variant was implemented straight off of wikipedias version
+		 *	https://en.wikipedia.org/wiki/A*_search_algorithm
+		**/
+
+		if (nodes [source].isControlPoint || nodes [destination].isControlPoint) {
+			throw new ArgumentException("Cannot use control points as start or goal");
+			return new List<Edge>();
+		}
+
+
+		HashSet<int> closedSet = new HashSet<int> ();
+		HashSet<int> openSet = new HashSet<int> ();
+		openSet.Add (source);
+		int count = 1;
+
+		Dictionary<int, int> cameFrom = new Dictionary<int,int> ();
+		Dictionary<int, float> gScore = new Dictionary<int,float> ();
+		Dictionary<int, float> fScore = new Dictionary<int,float> ();
+
+
+
+		//initialize scores with max int values
+		for (int i = 0; i < nodes.Count; ++i) {
+			if(nodes[i] == null) continue;
+			gScore.Add (i, float.MaxValue);
+			fScore.Add (i, float.MaxValue);
+		}
+
+		gScore [source] = 0.0f;
+		fScore [source] = Vector3.Distance(nodes[source].pos, nodes[destination].pos);
+
+
+		while (count > 0) {
+			int current = FindLowestIndex(fScore);
+			if(current == destination){
+				//Debug.Log ("found path from " + source + " to " + destination);
+				return ConstructPath (cameFrom, current, source);
+			}
+				
+
+			openSet.Remove(current);
+			fScore.Remove (current);
+			--count;
+			closedSet.Add(current);
+
+			foreach (int neighbor in nodes[current].connections){
+				if(closedSet.Contains(neighbor)) continue;
+				//Debug.Log("checking neighbor " + neighbor);
+				float tentativeGScore = gScore[current] + Vector3.Distance(nodes[current].pos, nodes[neighbor].pos);
+
+				if(!openSet.Contains(neighbor) || tentativeGScore < gScore[neighbor]){
+					cameFrom[neighbor] = current;
+					gScore[neighbor] = tentativeGScore;
+					fScore[neighbor] = tentativeGScore + Vector3.Distance (nodes[neighbor].pos, nodes[destination].pos);
+					if (!openSet.Contains(neighbor)){
+						openSet.Add(neighbor);
+						++count;
+					}
+				}
+			}
+
+		}
+
+		return new List<Edge>();
+	}
+
+
+
+	private int FindLowestIndex(Dictionary<int, float> inMap){
+		int lowestIndex = -1;
+		float lowestValue = float.MaxValue;
+		foreach(KeyValuePair<int,float> kvp in inMap){
+			if(kvp.Value < lowestValue){
+				lowestValue = kvp.Value;
+				lowestIndex = kvp.Key;
+			}
+		}
+		//Debug.Log ("lowest index " + lowestIndex + " ; lowest value " + lowestValue);
+		return lowestIndex;
+	}
+
+	private List<Edge> ConstructPath(Dictionary<int, int> map, int current, int start){
+	
+		List<Edge> path = new List<Edge> ();
+		int maxIter = map.Count * 2;
+		int iter = 0;
+		while (current != start && iter < maxIter) {
+			Edge edge = edges[ map[current], current];
+			if(edge == null){ //if edge is null, it must be reversed
+				edge = edges[current, map[current]];
+				Edge reverseEdge = edge;
+				reverseEdge.reverse = true;
+				path.Add (reverseEdge);
+			}
+			else{
+				path.Add (edge);
+			}
+			current = map[current];
+			++iter;
+		}
+		path.Reverse ();
+
+		return path;
 	}
 
 
