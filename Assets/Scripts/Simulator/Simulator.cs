@@ -42,8 +42,10 @@ public class Simulator : MonoBehaviour {
 		int nr_errors = 0;
 
 		for (int x = 0; x < network.nodes.Count; ++x) {
+			if(!network.nodes[x].isActive) continue;
 			if(network.nodes[x].isControlPoint) continue;
 			for (int y = 0; y < network.nodes.Count; ++y) {
+				if(!network.nodes[y].isActive) continue;
 				if(network.nodes[y].isControlPoint) continue;
 				if(x==y) continue; //don't test path from and to the same node
 			

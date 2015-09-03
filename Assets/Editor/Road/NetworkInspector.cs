@@ -51,8 +51,10 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			handleTransform.rotation : Quaternion.identity;
 
 		for (int x = 0; x < network.nodes.Count; ++x) {
+			if(!network.nodes[x].isActive) continue;
 			for(int y = 0; y < network.nodes.Count; ++y){
 				if(x==y) continue;
+				if(!network.nodes[y].isActive) continue;
 
 				Edge curEdge = network.edges[x,y];
 				if(curEdge == null) continue;

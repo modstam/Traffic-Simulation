@@ -135,6 +135,7 @@ public class Network : MonoBehaviour {
 			
 			edges [x, toNode] = fromEdge;
 			edges [x, fromNode] = null; 
+			edges.Remove (x,fromNode);
 
 					
 			Node selectedNode = GetNode(fromNode);
@@ -143,8 +144,8 @@ public class Network : MonoBehaviour {
 				nodes[oldConnection].RemoveConnection(fromNode);
 				
 			}
+			nodes[fromNode].isActive = false;
 
-			nodes[fromNode] = null;
 
 
 			for(int i = 0; i < nodes[toNode].NumConnections(); ++i){
@@ -223,7 +224,7 @@ public class Network : MonoBehaviour {
 
 		//initialize scores with max int values
 		for (int i = 0; i < nodes.Count; ++i) {
-			if(nodes[i] == null) continue;
+			if(!nodes[i].isActive) continue;
 			gScore.Add (i, float.MaxValue);
 			fScore.Add (i, float.MaxValue);
 		}
@@ -300,7 +301,7 @@ public class Network : MonoBehaviour {
 				path.Add (reverseEdge);
 			}
 			else{
-				Debug.Log ("Found edge " + edge.n0 + "->" + edge.n1 + " Reversed: " + edge.reverse);
+				//Debug.Log ("Found edge " + edge.n0 + "->" + edge.n1 + " Reversed: " + edge.reverse);
 				path.Add (edge);
 			}
 			current = map[current];

@@ -17,6 +17,9 @@ public class Node{
 	[SerializeField]
 	public bool isControlPoint;
 
+	[SerializeField]
+	public bool isActive = true;
+
 	public Node(Vector3 pos){
 		this.pos = pos;
 		connections = new List<int>();

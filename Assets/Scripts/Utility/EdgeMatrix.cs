@@ -49,6 +49,11 @@ public class EdgeMatrix : ISerializationCallbackReceiver {
 
 	}
 
+	public void Remove(int x, int y){
+		string key = x + "," + y;
+		edges.Remove (key);
+	}
+
 	public void OnBeforeSerialize()
 	{
 		if (!Application.isPlaying) {
