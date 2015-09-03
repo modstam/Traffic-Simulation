@@ -80,7 +80,7 @@ public class CarControl : MonoBehaviour
         }
         else if (traversing)
         {
-            if (edgeProgress > 0.95f) //finnished
+            if (edgeProgress > 0.99f) //finnished
             {
                 Stop();
             }
