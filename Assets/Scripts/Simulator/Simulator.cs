@@ -56,7 +56,8 @@ public class Simulator : MonoBehaviour {
         for (int i = 0; i < network.nodes.Count; ++i)
         {
             //Debug.Log("Looking at node #" + i + ", distance: " + (position - network.nodes[i].pos).magnitude + ", min: " + minDistance);
-            if (((position - network.nodes[i].pos).magnitude) < minDistance)
+            if (((position - network.nodes[i].pos).magnitude) < minDistance
+                && !network.nodes[i].isControlPoint && network.nodes[i].isActive)
             {
                 bestIndex = i;
                 minDistance = (position - network.nodes[i].pos).magnitude;
@@ -69,6 +70,11 @@ public class Simulator : MonoBehaviour {
     public Vector3 getNodePosition(int nodeId)
     {
         return network.nodes[nodeId].pos;
+    }
+
+    public Vector3 getEdgePoint(Edge edge, float t)
+    {
+        return Bezier.BezierCurve(getNodePosition(edge.n0), getNodePosition(edge.n1), getNodePosition(edge.c0), getNodePosition(edge.c0), t);
     }
 
 

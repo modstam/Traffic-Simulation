@@ -25,9 +25,9 @@ public class Edge{
 
 
 	public Vector3 Progress(float t){
-
-		return new Vector3();
-	}
+        //return Bezier.BezierCurve(n0, n1, c0, c1, t);
+        return new Vector3();
+    }
 
 	public override string ToString ()
 	{	

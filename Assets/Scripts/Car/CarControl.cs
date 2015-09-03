@@ -5,7 +5,7 @@ public class CarControl : MonoBehaviour
 {
 
     private float speedLimit = 0;
-    private Rigidbody myBody;
+    //private Rigidbody myBody;
     public float distanceTraveled = 0;
     public float targetDistance = 0;
     private Vector3 startPos;
@@ -79,7 +79,7 @@ public class CarControl : MonoBehaviour
         }
         else if (traversing)
         {
-            if (edgeProgress > 0.99f) //finnished
+            if (edgeProgress > 0.90f) //finnished
             {
                 Stop();
             }
@@ -96,12 +96,13 @@ public class CarControl : MonoBehaviour
     void MovementTraverse(float deltaTime)
     {
         edgeProgress += deltaTime / edgeTime;
-        Vector3 newPos = curEdge.Progress(edgeProgress);
+        Vector3 newPos = myCar.getEdgePoint(curEdge,edgeProgress);
+        //Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
         rotationUpdateCounter++;
-        if(rotationUpdateCounter > 50)
+        if(rotationUpdateCounter > 10)
         {
             rotationUpdateCounter = 0;
-            //transform.rotation = Quaternion.LookRotation((previousPos - newPos).normalized);
+            transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
             previousPos = transform.position;
         }
         //transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
@@ -119,7 +120,7 @@ public class CarControl : MonoBehaviour
         this.curEdge = edge;
         edgeProgress = 0;
         Debug.Log("Edgetime: " + edgeTime + ". Edge: " + edge);
-
+        previousPos = transform.position;
         traversing = true;
     }
 

@@ -24,7 +24,12 @@ public class Car : MonoBehaviour
         //Debug.Log("Car is set...");
        // Debug.Log("Nodepos[0]: " + simulator.getNodePosition(0));
         myPath = simulator.pathFromTo(transform.position, myGoal);
-        Debug.Log("Found path: " + myPath[0].ToString());
+        string[] listString = new string[myPath.Count];
+        for (int i = 0; i < myPath.Count; ++i)
+        {
+            listString[i] = myPath[i].ToString();
+        }
+        Debug.Log( "Found path from " + myPath[0].n0 + " to " + myPath[myPath.Count -1].n0 + "; List size: " + myPath.Count + ": " + string.Join(", ", listString));
         curEdgeIndex = -1;
         
         GoTowards(simulator.getNodePosition(myPath[0].n0));
@@ -57,10 +62,16 @@ public class Car : MonoBehaviour
         this.simulator = simulator;
     }
 
+    public Vector3 getEdgePoint(Edge edge, float t)
+    {
+        return simulator.getEdgePoint(edge, t);
+    }
+
     public void onStop()
     {
+        Debug.Log("STOP!");
         //If we finnished the previous travel command
-        if (carControl.edgeProgress > 0.99f || (transform.position - targetPos).magnitude < 2)
+        if (carControl.edgeProgress > 0.90f || (transform.position - targetPos).magnitude < 2)
         {
             curEdgeIndex += 1;
             if (!(curEdgeIndex >= myPath.Count)) //If we havn't reached end of path
