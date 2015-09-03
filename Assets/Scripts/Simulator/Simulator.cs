@@ -12,8 +12,10 @@ public class Simulator : MonoBehaviour {
 
 	[SerializeField]
 	Network network;
+    public List<Car> cars;
+    public Car testcar; //testcar
 
-	void Awake(){
+    void Awake(){
 		if (!Application.isPlaying) {
 			network = gameObject.GetComponent<Network>();
 			if(network == null)
@@ -23,8 +25,8 @@ public class Simulator : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-
-	}
+        testcar.setSimulator(this);
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -35,8 +37,29 @@ public class Simulator : MonoBehaviour {
 		}
 	}
 
+    
+    public List<Edge> pathFromTo(Vector3 position, Vector3 target)
+    {
+        Node startNode = new Node(position); //TODO temp
+        Node endNode = new Node(target); //TODO temp
+        return network.pathTo(startNode, endNode);
+    }
 
-	void TestPathFinding(){
+    public Node findClosestNode(Vector3 position)
+    {
+        int bestIndex = -1;
+        float minDistance = float.MaxValue;
+        for (int i = 0; i < network.nodes.Count; ++i)
+        {
+            if (((position - network.nodes[i].pos).magnitude) < minDistance)
+                bestIndex = i;
+        }
+
+        return network.nodes[bestIndex];
+    }
+
+
+    void TestPathFinding(){
 		Debug.Log ("Testing pathfinding...this may take a while");
 		int nr = 0;
 		int nr_errors = 0;
