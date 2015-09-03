@@ -9,8 +9,7 @@ public class Car : MonoBehaviour
     public CarControl carControl;
     Simulator simulator;
 
-    Node targetNode;
-    int targetNodeId;
+    Vector3 targetPos;
 
     public List<Edge> myPath;
     public int curEdgeIndex;
@@ -23,17 +22,16 @@ public class Car : MonoBehaviour
         carControl.SetCar(this);
         myPath = simulator.pathFromTo(transform.position, myGoal);
         curEdgeIndex = -1;
-        GoTowards(myPath[0].node0, 0);
+        GoTowards(simulator.getNodePosition(myPath[0].n0));
     }
 
 
-    public void GoTowards(Node node, int nodeId)
+    public void GoTowards(Vector3 target)
     {
-        targetNode = node;
-        targetNodeId = nodeId;
-        float distance = (targetNode.pos - carControl.transform.position).magnitude;
+        targetPos = target;
+        float distance = (targetPos - carControl.transform.position).magnitude;
         float speedLimit = 20; //TODO HARDCODED VALUE
-        Vector3 direction = (targetNode.pos - carControl.transform.position).normalized;
+        Vector3 direction = (targetPos - carControl.transform.position).normalized;
 
         carControl.Go(distance, speedLimit, direction);
     }
@@ -57,7 +55,7 @@ public class Car : MonoBehaviour
     public void onStop()
     {
         //If we finnished the previous travel command
-        if (carControl.edgeProgress > 0.99f || (transform.position - targetNode.pos).magnitude < 2)
+        if (carControl.edgeProgress > 0.99f || (transform.position - targetPos).magnitude < 2)
         {
             curEdgeIndex += 1;
             if (!(curEdgeIndex >= myPath.Count)) //If we havn't reached end of path
@@ -68,7 +66,7 @@ public class Car : MonoBehaviour
         }
         else
         {
-            GoTowards(targetNode, targetNodeId);
+            GoTowards(targetPos);
         }
     }
 }

@@ -40,12 +40,12 @@ public class Simulator : MonoBehaviour {
     
     public List<Edge> pathFromTo(Vector3 position, Vector3 target)
     {
-        Node startNode = new Node(position); //TODO temp
-        Node endNode = new Node(target); //TODO temp
-        return network.pathTo(startNode, endNode);
+        int startNodeId = findClosestNodeId(position); //TODO temp
+        int endNodeId = findClosestNodeId(target); //TODO temp
+        return network.PathTo(startNodeId, endNodeId);
     }
 
-    public Node findClosestNode(Vector3 position)
+    public int findClosestNodeId(Vector3 position)
     {
         int bestIndex = -1;
         float minDistance = float.MaxValue;
@@ -55,7 +55,12 @@ public class Simulator : MonoBehaviour {
                 bestIndex = i;
         }
 
-        return network.nodes[bestIndex];
+        return bestIndex;
+    }
+
+    public Vector3 getNodePosition(int nodeId)
+    {
+        return network.nodes[nodeId].pos;
     }
 
 
