@@ -19,9 +19,14 @@ public class Car : MonoBehaviour
     void Start()
     {
         //carHandler.onCarReady(this, -1);
+        myGoal = new Vector3(60, 0, 0);
         carControl.SetCar(this);
+        //Debug.Log("Car is set...");
+       // Debug.Log("Nodepos[0]: " + simulator.getNodePosition(0));
         myPath = simulator.pathFromTo(transform.position, myGoal);
+        Debug.Log("Found path: " + myPath[0].ToString());
         curEdgeIndex = -1;
+        
         GoTowards(simulator.getNodePosition(myPath[0].n0));
     }
 

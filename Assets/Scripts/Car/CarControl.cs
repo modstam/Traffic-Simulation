@@ -20,6 +20,9 @@ public class CarControl : MonoBehaviour
     public Transform graphicTransform;
     public Car myCar;
 
+    private Vector3 previousPos;
+    private int rotationUpdateCounter;
+
 
     void Awake()
     {
@@ -94,7 +97,14 @@ public class CarControl : MonoBehaviour
     {
         edgeProgress += deltaTime / edgeTime;
         Vector3 newPos = curEdge.Progress(edgeProgress);
-        transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
+        rotationUpdateCounter++;
+        if(rotationUpdateCounter > 50)
+        {
+            rotationUpdateCounter = 0;
+            //transform.rotation = Quaternion.LookRotation((previousPos - newPos).normalized);
+            previousPos = transform.position;
+        }
+        //transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
         transform.position = newPos;
     }
 
@@ -108,6 +118,8 @@ public class CarControl : MonoBehaviour
         this.edgeTime = edgeTime;
         this.curEdge = edge;
         edgeProgress = 0;
+        Debug.Log("Edgetime: " + edgeTime + ". Edge: " + edge);
+
         traversing = true;
     }
 

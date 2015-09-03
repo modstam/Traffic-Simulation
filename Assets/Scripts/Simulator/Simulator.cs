@@ -21,11 +21,13 @@ public class Simulator : MonoBehaviour {
 			if(network == null)
 				this.network = gameObject.AddComponent<Network>();
 		}
-	}
+
+        testcar.setSimulator(this);
+    }
 
 	// Use this for initialization
 	void Start () {
-        testcar.setSimulator(this);
+        
     }
 	
 	// Update is called once per frame
@@ -40,8 +42,10 @@ public class Simulator : MonoBehaviour {
     
     public List<Edge> pathFromTo(Vector3 position, Vector3 target)
     {
+        Debug.Log("Looking for nodes corresponding to : " + position + " and " + target);
         int startNodeId = findClosestNodeId(position); //TODO temp
         int endNodeId = findClosestNodeId(target); //TODO temp
+        Debug.Log("Found: " + getNodePosition(startNodeId) + " and " + getNodePosition(endNodeId));
         return network.PathTo(startNodeId, endNodeId);
     }
 
@@ -51,8 +55,12 @@ public class Simulator : MonoBehaviour {
         float minDistance = float.MaxValue;
         for (int i = 0; i < network.nodes.Count; ++i)
         {
+            //Debug.Log("Looking at node #" + i + ", distance: " + (position - network.nodes[i].pos).magnitude + ", min: " + minDistance);
             if (((position - network.nodes[i].pos).magnitude) < minDistance)
+            {
                 bestIndex = i;
+                minDistance = (position - network.nodes[i].pos).magnitude;
+            }
         }
 
         return bestIndex;
