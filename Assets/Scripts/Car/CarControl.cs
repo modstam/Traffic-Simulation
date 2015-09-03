@@ -22,6 +22,7 @@ public class CarControl : MonoBehaviour
 
     private Vector3 previousPos;
     private int rotationUpdateCounter;
+    private int rotationIntensity = 7; //rotate car every 7th frame
 
 
     void Awake()
@@ -79,7 +80,7 @@ public class CarControl : MonoBehaviour
         }
         else if (traversing)
         {
-            if (edgeProgress > 0.90f) //finnished
+            if (edgeProgress > 0.95f) //finnished
             {
                 Stop();
             }
@@ -99,7 +100,7 @@ public class CarControl : MonoBehaviour
         Vector3 newPos = myCar.getEdgePoint(curEdge,edgeProgress);
         //Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
         rotationUpdateCounter++;
-        if(rotationUpdateCounter > 10)
+        if(rotationUpdateCounter > rotationIntensity)
         {
             rotationUpdateCounter = 0;
             transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);

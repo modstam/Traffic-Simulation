@@ -74,7 +74,7 @@ public class Simulator : MonoBehaviour {
 
     public Vector3 getEdgePoint(Edge edge, float t)
     {
-        return Bezier.BezierCurve(getNodePosition(edge.n0), getNodePosition(edge.n1), getNodePosition(edge.c0), getNodePosition(edge.c1), t);
+        return Bezier.BezierCurve(getNodePosition(edge.n0), getNodePosition(edge.c0), getNodePosition(edge.c1), getNodePosition(edge.n1), t);
     }
 
 
