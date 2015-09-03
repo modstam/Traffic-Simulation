@@ -48,7 +48,7 @@ public class Car : MonoBehaviour
 
     public void TraverseEdge(Edge edge)
     {
-        float edgeTime = 5f; //TODO HARDCODED VALUE
+        float edgeTime = 10f; //TODO HARDCODED VALUE
         carControl.TraverseEdge(edge, edgeTime);
     }
 
@@ -71,7 +71,7 @@ public class Car : MonoBehaviour
     {
         Debug.Log("STOP!");
         //If we finnished the previous travel command
-        if (carControl.edgeProgress > 0.90f || (transform.position - targetPos).magnitude < 0.1f)
+        if (carControl.edgeProgress > 0.90f || (transform.position - targetPos).magnitude < 1f)
         {
             curEdgeIndex += 1;
             if (!(curEdgeIndex >= myPath.Count)) //If we havn't reached end of path
