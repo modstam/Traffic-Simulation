@@ -92,6 +92,8 @@ public class Network : MonoBehaviour {
 		edge.c1 = nodes.Count - 2;
 		edge.n1 = nodes.Count - 1;
 
+		Debug.Log ("added " + edge.ToString ());
+
 
 		//add entry for startnode to endnode connection
 		if (edges [nodeIndex, nodes.Count - 1] == null) {
@@ -100,9 +102,6 @@ public class Network : MonoBehaviour {
 			
 
 		AddConnection (nodeIndex, nodes.Count - 1);
-
-
-		//TODO -> BezierModes 
 
 		return edge;
 	}
@@ -290,12 +289,18 @@ public class Network : MonoBehaviour {
 		while (current != start && iter < maxIter) {
 			Edge edge = edges[ map[current], current];
 			if(edge == null){ //if edge is null, it must be reversed
+				//Debug.Log ("didnt find edge " + map[current] + "->" + current);
 				edge = edges[current, map[current]];
-				Edge reverseEdge = edge;
+				Edge reverseEdge = new Edge();
+				reverseEdge.n0 = edge.n0;
+				reverseEdge.c0 = edge.c0;
+				reverseEdge.c1 = edge.c1;
+				reverseEdge.n1 = edge.n1;
 				reverseEdge.reverse = true;
 				path.Add (reverseEdge);
 			}
 			else{
+				Debug.Log ("Found edge " + edge.n0 + "->" + edge.n1 + " Reversed: " + edge.reverse);
 				path.Add (edge);
 			}
 			current = map[current];

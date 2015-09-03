@@ -9,7 +9,6 @@ public class Simulator : MonoBehaviour {
 
 	public bool DEBUG_PATHFINDING = false;
 
-	private int NUM_ERRORS = 0;
 
 	[SerializeField]
 	Network network;

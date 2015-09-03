@@ -187,10 +187,10 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 
 				
 			DrawSelectedPointInspector();
-			Edge edge;
+			Edge edge = null;
 				if (GUILayout.Button("Add Road")) {
 					Undo.RecordObject(network, "Add Road");
-					Debug.Log (selectedIndex);
+					//Debug.Log (selectedIndex);
 					edge = network.AddEdge(selectedIndex);
 					EditorUtility.SetDirty(network);
 				}
