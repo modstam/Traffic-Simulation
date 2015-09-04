@@ -14,6 +14,9 @@ public class Simulator : MonoBehaviour {
 	Network network;
     public List<Car> cars;
     public Car testcar; //testcar
+    public List<int> trafficLightNodes; //Input in editor which nodes are to have traffic lights
+    private List<TrafficLight> trafficLights;
+    public float trafficLightChangeFrequency = 4f; //Input in editor how often the traffic lights change
 
     void Awake(){
 		if (!Application.isPlaying) {
@@ -23,6 +26,17 @@ public class Simulator : MonoBehaviour {
 		}
 
         testcar.setSimulator(this);
+
+        //Add traffic lights
+        trafficLights = new List<TrafficLight>();
+        if(trafficLightNodes != null)
+        {
+            for(int i = 0; i < trafficLightNodes.Count; i++)
+            {
+                trafficLights.Add(new TrafficLight(network.nodes[trafficLightNodes[i]], trafficLightNodes[i], trafficLightChangeFrequency));
+            }
+            
+        }
     }
 
 	// Use this for initialization
@@ -32,11 +46,18 @@ public class Simulator : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (DEBUG_PATHFINDING && Application.isPlaying) {
+        //Debug.Log("Uppadado?");
+        if (DEBUG_PATHFINDING && Application.isPlaying) {
 			DEBUG_PATHFINDING = false;
 			TestPathFinding();
 
 		}
+        
+        foreach (TrafficLight trafficLight in trafficLights)
+        {
+            
+            trafficLight.update(Time.deltaTime);
+        }
 	}
 
     
@@ -148,4 +169,18 @@ public class Simulator : MonoBehaviour {
 		Debug.Assert (edge_check);
 		return edge_check;
 	}
+
+    public bool isChannelOpen(int fromNodeId, int toNodeId, int viaNodeId, Car car)
+    {
+        Debug.Log("isChannelOpen? trafficLights.count: " + trafficLights.Count);
+        foreach(TrafficLight trafficLight in trafficLights) {
+            if(trafficLight.nodeId == viaNodeId && trafficLight.checkTrafficLight(fromNodeId, toNodeId, car))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }

@@ -14,6 +14,10 @@ public class Car : MonoBehaviour
     public List<Edge> myPath;
     public int curEdgeIndex;
     public Vector3 myGoal;
+    public float completeProgress = 0.99f; //Edge considered complete when t >= 0.99.
+    public float trafficPauseProgress = 0.85f; //Check if traffic light is green at this distance.
+    bool trafficChannelChecked = false;
+
 
 
     void Start()
@@ -67,15 +71,41 @@ public class Car : MonoBehaviour
         return simulator.getEdgePoint(edge, t);
     }
 
+    void Update()
+    {
+        if (!trafficChannelChecked)
+        {
+            if (carControl.edgeProgress > trafficPauseProgress && curEdgeIndex < myPath.Count-1)
+            {
+                trafficChannelChecked = true;
+                if (simulator.isChannelOpen(myPath[curEdgeIndex].n0, myPath[curEdgeIndex + 1].n1, myPath[curEdgeIndex].n1, this))
+                {
+                    //Continue going...
+                }
+                else
+                {
+                    carControl.pause();
+                }
+            } 
+        }
+    }
+
+    public void OnGreenLight()
+    {
+        Debug.Log("Resuming...");
+        carControl.resume();
+    }
+
     public void onStop()
     {
         Debug.Log("STOP!");
         //If we finnished the previous travel command
-        if (carControl.edgeProgress > 0.90f || (transform.position - targetPos).magnitude < 1f)
+        if (carControl.edgeProgress > completeProgress || (transform.position - targetPos).magnitude < 1f)
         {
             curEdgeIndex += 1;
             if (!(curEdgeIndex >= myPath.Count)) //If we havn't reached end of path
             {
+                trafficChannelChecked = false;
                 TraverseEdge(myPath[curEdgeIndex]);
             }
             //carHandler.onCarReady(this, targetNodeId);

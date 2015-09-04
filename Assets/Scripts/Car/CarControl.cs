@@ -12,10 +12,11 @@ public class CarControl : MonoBehaviour
     private Vector3 targetDirection;
     private bool going = false; //When freely moving straight towards a node
     private bool traversing = false;  //When traveling along a curved edge
+    private bool paused = false; //when temporarily stopping because of obstacle/traffic light
 
     private Edge curEdge;
     public float edgeProgress = 0f;
-    private float edgeTime = 0f;
+    public float edgeTime = 0f;
 
     public Transform graphicTransform;
     public Car myCar;
@@ -60,31 +61,46 @@ public class CarControl : MonoBehaviour
         myCar.onStop();
     }
 
+    public void pause()
+    {
+        paused = true;
+    }
+
+    public void resume()
+    {
+        paused = false;
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if (going)
+        if (!paused)
         {
-            distanceTraveled = (startPos - transform.position).magnitude;
+            if (going)
+            {
+                distanceTraveled = (startPos - transform.position).magnitude;
 
 
-            if (distanceTraveled > targetDistance)
-            {
-                Stop();
-                //Go(Random.Range(500f, 1500f), Random.Range(10f, 25f), new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)));
+                if (distanceTraveled > targetDistance)
+                {
+                    Stop();
+                    //Go(Random.Range(500f, 1500f), Random.Range(10f, 25f), new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)));
+                }
+                else
+                {
+                    MovementGo();
+                }
             }
-            else
+            else if (traversing)
             {
-                MovementGo();
+                if(edgeProgress > 0)
+                if (edgeProgress > 0.99f) //finnished
+                {
+                    Stop();
+                }
+                MovementTraverse(Time.deltaTime);
             }
-        }
-        else if (traversing)
-        {
-            if (edgeProgress > 0.99f) //finnished
-            {
-                Stop();
-            }
-            MovementTraverse(Time.deltaTime);
+
         }
 
     }
