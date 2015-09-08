@@ -51,7 +51,7 @@ public class TrafficLight {
 
     public TrafficLight(Node node, int nodeId, float frequency)
     {
-        Debug.Log("INITING TFL");
+        //Debug.Log("INITING TFL");
         this.frequency = frequency;
         this.nodeId = nodeId;
 
@@ -62,7 +62,7 @@ public class TrafficLight {
         {
             for (int j = node.connections.Count - 1; j > i; j--)
             {
-                Debug.Log("Adding when i=" + i + ", j=" + j + ". node#" + node.connections[i] + "<->node#" + node.connections[j]);
+                //Debug.Log("Adding when i=" + i + ", j=" + j + ". node#" + node.connections[i] + "<->node#" + node.connections[j]);
                 channels[index] = new IntPair(node.connections[i], node.connections[j]);
                 index++;
             }
@@ -87,19 +87,19 @@ public class TrafficLight {
         timeSinceChange += deltaTime;
         if (timeSinceChange > frequency)
         {
-            Debug.Log("pre openchannel:" + openChannel);
+            //Debug.Log("pre openchannel:" + openChannel);
             timeSinceChange = 0;
             openChannel = (openChannel < channels.Length - 1) ? openChannel + 1 : 0;
             foreach (Car car in waitingCars[openChannel])
             {
-                Debug.Log("Resuming CAHRS");
+                //Debug.Log("Resuming CAHRS");
                 car.OnGreenLight(); //notify the cars waiting for this openChannel
             }
             int a = 2;
-            Debug.Log("post openchannel:" + openChannel);
-            Debug.Log("channels[openchannel]" + channels[openChannel]);
-            Debug.Log("channels.length: " + channels.Length);
-            Debug.Log("(openChannel < channels.Length - 1) is " + (openChannel < channels.Length - 1));
+            //Debug.Log("post openchannel:" + openChannel);
+            //Debug.Log("channels[openchannel]" + channels[openChannel]);
+            //Debug.Log("channels.length: " + channels.Length);
+            //Debug.Log("(openChannel < channels.Length - 1) is " + (openChannel < channels.Length - 1));
             Debug.Log("Changing trafficlight #" + nodeId + " to open [" + channels[openChannel].x + " <-> " + channels[openChannel].y + "].");
         }
 	}
@@ -115,7 +115,7 @@ public class TrafficLight {
         {
             if(channels[i].containsBoth(nodeFrom, nodeTo))
             {
-                Debug.Log("Adding car to waitlist");
+                //Debug.Log("Adding car to waitlist");
                 waitingCars[i].Add(car);
                 return false;
             }
