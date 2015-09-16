@@ -178,6 +178,7 @@ public class CarControl : MonoBehaviour
         previousPos = transform.position;
         //rotationUpdateCounter = (int) (rotationIntensity * 0.9);
         traversing = true;
+        rotationUpdateCounter = 0;
     }
 
 

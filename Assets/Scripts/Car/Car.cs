@@ -13,8 +13,8 @@ public class Car : MonoBehaviour
 
     public List<Edge> myPath;
     public int curEdgeIndex;
-    public Vector3 myOrigin;
-    public Vector3 myGoal;
+    public int myOriginId;
+    public int myGoalId;
     private float completeProgress = 0.99f; //Edge considered complete when t >= 0.99.
     private float trafficPauseProgress = 0.90f; //Check if traffic light is green at this distance.
     bool trafficChannelChecked = false;
@@ -31,24 +31,27 @@ public class Car : MonoBehaviour
 
     void restart()
     {
-        myPath = simulator.pathFromTo(transform.position, myGoal);
+        myPath = simulator.pathFromTo(myOriginId, myGoalId);
+        
         string[] listString = new string[myPath.Count];
         for (int i = 0; i < myPath.Count; ++i)
         {
             listString[i] = myPath[i].ToString();
         }
-        //Debug.Log("Found path from " + myPath[0].n0 + " to " + myPath[myPath.Count - 1].n1 + "; List size: " + myPath.Count + ": " + string.Join(", ", listString));
-        curEdgeIndex = -1;
+        Debug.Log("Found path from " + myPath[0].n0 + " to " + myPath[myPath.Count - 1].n1 + "; List size: " + myPath.Count + ": " + string.Join(", ", listString));
+        curEdgeIndex = 0;
 
         if (!myPath[0].reverse)
         {
-            myOrigin = getNodePosition(myPath[0].n0);
-            GoTowards(simulator.getNodePosition(myPath[0].n0));
+            myOriginId = myPath[0].n0;
+            TraverseEdge(myPath[0]);
+            //GoTowards(simulator.getNodePosition(myPath[0].n0));
         }
         else
         {
-            myOrigin = getNodePosition(myPath[0].n1);
-            GoTowards(simulator.getNodePosition(myPath[0].n1));
+            myOriginId = myPath[0].n1;
+            TraverseEdge(myPath[0]);
+            //GoTowards(simulator.getNodePosition(myPath[0].n1));
         }
     }
 
@@ -155,9 +158,12 @@ public class Car : MonoBehaviour
                 TraverseEdge(myPath[curEdgeIndex]);
             } else
             { //Make a journey back to beginning...
-                Vector3 tmpVec = new Vector3(myOrigin.x, myOrigin.y, myOrigin.z);
+                /*Vector3 tmpVec = new Vector3(myOrigin.x, myOrigin.y, myOrigin.z);
                 myOrigin = myGoal;
-                myGoal = new Vector3(tmpVec.x, tmpVec.y, tmpVec.z);
+                myGoal = new Vector3(tmpVec.x, tmpVec.y, tmpVec.z);*/
+                int oldOrigin = myOriginId;
+                myOriginId = myGoalId;
+                myGoalId = oldOrigin;
                 restart();
             }
             //carHandler.onCarReady(this, targetNodeId);

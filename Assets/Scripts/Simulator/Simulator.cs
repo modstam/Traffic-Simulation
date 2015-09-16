@@ -26,6 +26,7 @@ public class Simulator : MonoBehaviour {
     public float carSpawnIntensity = 1f; // seconds
     private float timeSinceCarSpawn = 0f;
     private int spawnEndNode;
+    public float laneWidth = 1.5f;
 
     void Awake(){
 		if (!Application.isPlaying) {
@@ -75,7 +76,7 @@ public class Simulator : MonoBehaviour {
             trafficLight.update(Time.deltaTime);
         }
 
-        if (carsSpawned <= carsToSpawn)
+        if (carsSpawned < carsToSpawn)
         {
            
             if (timeSinceCarSpawn > carSpawnIntensity)
@@ -104,7 +105,8 @@ public class Simulator : MonoBehaviour {
             goalNodeId = endNodes[UnityEngine.Random.Range(0, endNodes.Count)];
         }
         //Debug.Log("Goal(" + goalNodeId + ") is at: " + getNodePosition(goalNodeId) + ".");
-        car.myGoal = getNodePosition(goalNodeId);
+        car.myOriginId = fromNodeId;
+        car.myGoalId = goalNodeId;
         car.setSimulator(this);
         cars.Add(car);
     }
@@ -112,11 +114,16 @@ public class Simulator : MonoBehaviour {
     
     public List<Edge> pathFromTo(Vector3 position, Vector3 target)
     {
-        //Debug.Log("Looking for nodes corresponding to : " + position + " and " + target);
+        Debug.Log("Looking for nodes corresponding to : " + position + " and " + target);
         int startNodeId = findClosestNodeId(position); //TODO temp
         int endNodeId = findClosestNodeId(target); //TODO temp
-        //Debug.Log("Found: " + getNodePosition(startNodeId) + " and " + getNodePosition(endNodeId));
+        Debug.Log("Found: " + getNodePosition(startNodeId) + " and " + getNodePosition(endNodeId));
         return network.PathTo(startNodeId, endNodeId);
+    }
+
+    public List<Edge> pathFromTo(int fromId, int toId)
+    {
+        return network.PathTo(fromId, toId);
     }
 
     public int findClosestNodeId(Vector3 position)
@@ -125,12 +132,13 @@ public class Simulator : MonoBehaviour {
         float minDistance = float.MaxValue;
         for (int i = 0; i < network.nodes.Count; ++i)
         {
-            //Debug.Log("Looking at node #" + i + ", distance: " + (position - network.nodes[i].pos).magnitude + ", min: " + minDistance);
-            if (((position - network.nodes[i].pos).magnitude) < minDistance
+            float distance = (position - network.nodes[i].pos).magnitude;
+            //Debug.Log("Looking at node #" + i + ", distance: " + (position - getNodePosition(i)).magnitude + ", min: " + minDistance);
+            if (distance < minDistance
                 && !network.nodes[i].isControlPoint && network.nodes[i].isActive)
             {
                 bestIndex = i;
-                minDistance = (position - network.nodes[i].pos).magnitude;
+                minDistance = distance;
             }
         }
 
@@ -139,7 +147,7 @@ public class Simulator : MonoBehaviour {
 
     public Vector3 getNodePosition(int nodeId)
     {
-        return network.nodes[nodeId].pos;
+        return network.nodes[nodeId].pos + transform.position;
     }
 
     public Vector3 getEdgePoint(Edge edge, float t)
@@ -149,7 +157,8 @@ public class Simulator : MonoBehaviour {
 
     public Vector3 getEdgePointOffset(Edge edge, float t, Vector3 carRight)
     {
-        Vector3 offset = Vector3.Scale(new Vector3(2, 2, 2), carRight);
+
+        Vector3 offset = Vector3.Scale(new Vector3(laneWidth, laneWidth, laneWidth), carRight);
         return offset + Bezier.BezierCurve(getNodePosition(edge.n0), getNodePosition(edge.c0), getNodePosition(edge.c1), getNodePosition(edge.n1), t);
     }
 
@@ -227,14 +236,20 @@ public class Simulator : MonoBehaviour {
 
     public bool isChannelOpen(int fromNodeId, int toNodeId, int viaNodeId, Car car)
     {
+        bool foundTrafficLight = false;
         //Debug.Log("isChannelOpen? trafficLights.count: " + trafficLights.Count);
         foreach(TrafficLight trafficLight in trafficLights) {
-            if(trafficLight.nodeId == viaNodeId && trafficLight.checkTrafficLight(fromNodeId, toNodeId, car))
+            if (trafficLight.nodeId == viaNodeId)
+            {
+                foundTrafficLight = true;
+            }
+            if (trafficLight.nodeId == viaNodeId && trafficLight.checkTrafficLight(fromNodeId, toNodeId, car))
             {
                 return true;
             }
         }
-        return false;
+        
+        return !foundTrafficLight; //return true if traffic light is not found
     }
 
 
