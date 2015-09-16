@@ -34,6 +34,8 @@ public class CarControl : MonoBehaviour
 	private float transferProgress = 0f;
 	private float transferDistance = 0f;
 
+    private Vector3 transferStartPos;
+
 
     void Awake()
     {
@@ -144,19 +146,24 @@ public class CarControl : MonoBehaviour
 				Debug.Log ("transferprogress: " + transferProgress);
 				transferProgress = 0;
 				transferMode = false;
-			}
+                startEdgeTravel(curEdge, edgeTime);
+            }
 			else{
 
 				Debug.Log ("interpolating");
 
 				Vector3 newPos = Vector3.Lerp (transferStart,transferEnd, transferProgress);
-				//Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
+                //Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
 
-			
-				//transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
-				//previousPos = transform.position;
 
-				transform.position = newPos;
+                //transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
+                //previousPos = transform.position;
+
+                //rotation fix
+                transform.rotation = Quaternion.LookRotation((transferEnd - transferStartPos).normalized);
+                Debug.Log("transferEnd: " + transferEnd + ", rotation: " + (transferEnd - transferStartPos).normalized);
+
+                transform.position = newPos;
 			}
 
 		
@@ -192,9 +199,9 @@ public class CarControl : MonoBehaviour
 	}
 	
 	public void TraverseEdge(Edge edge, float edgeTime)
-    {	
+    {
 
-		if (curEdge != null) {
+        if (curEdge != null) {
 			//commence transfer
 			transferMode = true;
 
@@ -204,29 +211,36 @@ public class CarControl : MonoBehaviour
 			if(prevEdge.reverse) transferStart = myCar.getEdgePointOffset(prevEdge, 0f, transform.rotation);
 			else transferStart = myCar.getEdgePointOffset(prevEdge, 1f, transform.rotation);
 
-			if(edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, 1f, Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
+            if (edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, 1f, Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
 			else transferEnd = myCar.getEdgePointOffset(edge, 0f, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
 
-			transferProgress = 0f;
+            transferProgress = 0f;
 			transferDistance = Vector3.Distance(transferStart,transferEnd);
-
+            transferStartPos = transform.position;
 
 
 		}
 
+        startEdgeTravel(edge, edgeTime);
+       
+    }
+
+    private void startEdgeTravel(Edge edge, float edgeTime)
+    {
         this.edgeTime = edgeTime;
         this.curEdge = edge;
-        
+
         //Debug.Log("Edgetime: " + edgeTime + ". Edge: " + edge);
 
         Vector3 startPos = transform.position;
         Vector3 firstLook;
-        if(!edge.reverse)
+        if (!edge.reverse)
         {
             firstLook = myCar.getNodePosition(edge.c0);
             edgeProgress = 0;
             goingReverse = false;
-        } else
+        }
+        else
         {
             firstLook = myCar.getNodePosition(edge.c1);
             edgeProgress = 1;
@@ -240,6 +254,5 @@ public class CarControl : MonoBehaviour
         traversing = true;
         rotationUpdateCounter = 0;
     }
-
 
 }

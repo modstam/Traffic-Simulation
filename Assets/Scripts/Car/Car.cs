@@ -68,7 +68,7 @@ public class Car : MonoBehaviour
 	
 	public void TraverseEdge(Edge edge)
 	{
-		float edgeTime = 10f; //TODO HARDCODED VALUE
+		float edgeTime = 2f; //TODO HARDCODED VALUE
 		carControl.TraverseEdge(edge, edgeTime);
 	}
 	
