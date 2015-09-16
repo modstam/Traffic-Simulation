@@ -108,7 +108,6 @@ public class CarControl : MonoBehaviour
         }
         //transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
         transform.position = newPos;
-		//transform.localPosition = new Vector3 (transform.localPosition.x+1, transform.localPosition.y, transform.localPosition.z);
     }
 
     public void SetCar(Car car)

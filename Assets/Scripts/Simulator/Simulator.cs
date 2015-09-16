@@ -15,14 +15,6 @@ public class Simulator : MonoBehaviour {
     public List<Car> cars;
     public Car testcar; //testcar
 
-	[SerializeField]
-	[Range(0f, 10f)]
-	public float offset;
-
-	[SerializeField]
-	[Range(0f, 10f)]
-	public float carScale;
-
     void Awake(){
 		if (!Application.isPlaying) {
 			network = gameObject.GetComponent<Network>();
