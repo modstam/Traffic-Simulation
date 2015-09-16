@@ -20,7 +20,7 @@ public class Simulator : MonoBehaviour {
 
     public List<int> endNodes;
 
-    public Rigidbody carPrefab;
+    public List<Rigidbody> carPrefabs;
     public int carsToSpawn = 0;
     private int carsSpawned = 0;
     public float carSpawnIntensity = 1f; // seconds
@@ -96,7 +96,8 @@ public class Simulator : MonoBehaviour {
 
     void spawnCar(int fromNodeId)
     {
-        Rigidbody carClone = (Rigidbody)Instantiate(carPrefab, getNodePosition(fromNodeId), transform.rotation);
+        int carPrefabId = UnityEngine.Random.Range(0, carPrefabs.Count);
+        Rigidbody carClone = (Rigidbody)Instantiate(carPrefabs[carPrefabId], getNodePosition(fromNodeId), transform.rotation);
         Car car = carClone.GetComponent<Car>();
         int goalNodeId = fromNodeId;
         //Debug.Log("From(" + fromNodeId + ") is at: " + getNodePosition(fromNodeId) + ".");
