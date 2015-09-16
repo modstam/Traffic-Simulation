@@ -15,6 +15,7 @@ public class CarControl : MonoBehaviour
     private bool paused = false; //when temporarily stopping because of obstacle/traffic light
 
     private Edge curEdge;
+	private Edge prevEdge;
     public float edgeProgress = 0f;
     public float edgeTime = 0f;
     public bool goingReverse;
@@ -25,6 +26,13 @@ public class CarControl : MonoBehaviour
     private Vector3 previousPos;
     private int rotationUpdateCounter;
     private int rotationIntensity = 7; //rotate car every 7th frame
+
+	//members for transfering the car between two edges
+	private bool transferMode = false;
+	private Vector3 transferStart;
+	private Vector3 transferEnd;
+	private float transferProgress = 0f;
+	private float transferDistance = 0f;
 
 
     void Awake()
@@ -126,34 +134,86 @@ public class CarControl : MonoBehaviour
 
     void MovementTraverse(float deltaTime)
     {
-        if (!goingReverse)
-        {
-            edgeProgress += deltaTime / edgeTime;
-        }
-        else
-        {
-            edgeProgress -= deltaTime / edgeTime;
-        }
-        Vector3 newPos = myCar.getEdgePointOffset(curEdge,edgeProgress, transform.rotation);
-        //Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
-        rotationUpdateCounter++;
-        if(rotationUpdateCounter > rotationIntensity)
-        {
-            rotationUpdateCounter = 0;
-            transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
-            previousPos = transform.position;
-        }
-        //transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
-        transform.position = newPos;
-    }
 
-    public void SetCar(Car car)
-    {
-        myCar = car;
-    }
+		if (transferMode) {
 
-    public void TraverseEdge(Edge edge, float edgeTime)
-    {
+			Debug.Log("transferMode");
+			transferProgress += (1/transferDistance)*deltaTime;
+
+			if(transferProgress >= 1.0f){
+				Debug.Log ("transferprogress: " + transferProgress);
+				transferProgress = 0;
+				transferMode = false;
+			}
+			else{
+
+				Debug.Log ("interpolating");
+
+				Vector3 newPos = Vector3.Lerp (transferStart,transferEnd, transferProgress);
+				//Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
+
+			
+				//transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
+				//previousPos = transform.position;
+
+				transform.position = newPos;
+			}
+
+		
+
+
+		} else {
+			if (!goingReverse)
+			{
+				edgeProgress += deltaTime / edgeTime;
+			}
+			else
+			{
+				edgeProgress -= deltaTime / edgeTime;
+			}
+			
+			Vector3 newPos = myCar.getEdgePointOffset(curEdge,edgeProgress, transform.rotation);
+			//Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
+			rotationUpdateCounter++;
+			if(rotationUpdateCounter > rotationIntensity)
+			{
+				rotationUpdateCounter = 0;
+				transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
+				previousPos = transform.position;
+			}
+			//transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
+			transform.position = newPos;
+		}
+	}
+	
+	public void SetCar(Car car)
+	{
+		myCar = car;
+	}
+	
+	public void TraverseEdge(Edge edge, float edgeTime)
+    {	
+
+		if (curEdge != null) {
+			//commence transfer
+			transferMode = true;
+
+			this.prevEdge = curEdge;
+
+
+			if(prevEdge.reverse) transferStart = myCar.getEdgePointOffset(prevEdge, 0f, transform.rotation);
+			else transferStart = myCar.getEdgePointOffset(prevEdge, 1f, transform.rotation);
+
+			if(edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, 1f, Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
+			else transferEnd = myCar.getEdgePointOffset(edge, 0f, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
+
+			transferProgress = 0f;
+			transferDistance = Vector3.Distance(transferStart,transferEnd);
+
+
+
+		}
+
         this.edgeTime = edgeTime;
         this.curEdge = edge;
         
