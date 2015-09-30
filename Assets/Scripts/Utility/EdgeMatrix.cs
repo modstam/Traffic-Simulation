@@ -5,8 +5,8 @@ using System.Collections;
 
 /**
  * This class is nescessary since Unity does 
- * not support serialization of nested lists
- * 
+ * not support serialization of nested lists.
+ * The class implements custom [int, int] operator to support easy access. 
  **/
 
 [System.Serializable]
@@ -23,12 +23,17 @@ public class EdgeMatrix : ISerializationCallbackReceiver {
 	public EdgeMatrix(){
 		edges = new Dictionary<string,Edge> ();
 	}
-	
+
+	/*
+	 * The [int,int] operator accesses an edge from x to y if there is such an edge
+	 * or returns null if no such edge can be retrieved.
+	 * @throw throws argumentexception if trying to add an edge that already exists
+	 * */
 	public Edge this[int x, int y]{
 		get{
 			string key = x + "," + y;
 			Edge val;
-			if(edges.TryGetValue(key, out val))return val;
+			if(edges.TryGetValue(key, out val)) return val;
 			else return null;
 			
 		}

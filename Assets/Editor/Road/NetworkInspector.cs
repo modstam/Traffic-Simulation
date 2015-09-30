@@ -7,7 +7,7 @@ using System.Collections;
 [CustomEditor (typeof(Network))] //This lets unity know that we want to use this class to inspect road-objects in the editor
 public class NetworkInspector : Editor { //Use editor instead of monobehaviour to set the correct context (extending editor)
 	[SerializeField]
-	Network network; 
+	Network network; //The target for our custom inspector
 
 	private Transform handleTransform;
 	private Quaternion handleRotation;
@@ -30,8 +30,8 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 
 	void OnEnable(){
 
-
-		network = (Network)target;
+		//try to regain target when we resume scene-view is enabled
+		network = (Network)target; 
 		if(network == null){
 			Debug.Log("No network to target");
 		}
@@ -50,24 +50,29 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		handleRotation = Tools.pivotRotation == PivotRotation.Local ?
 			handleTransform.rotation : Quaternion.identity;
 
+
 		for (int x = 0; x < network.nodes.Count; ++x) {
 			if(!network.nodes[x].isActive) continue;
 			for(int y = 0; y < network.nodes.Count; ++y){
 				if(x==y) continue;
 				if(!network.nodes[y].isActive) continue;
 
+				//for each pair of nodes, check if edge
 				Edge curEdge = network.edges[x,y];
 				if(curEdge == null) continue;
 
+				//Display nodes and control nodes of the edge
 				Vector3 p0 = ShowNode(network.nodes[curEdge.n0], x, curEdge);
 				Vector3 p1 = ShowControlNode(network.nodes[curEdge.c0], curEdge);
 				Vector3 p2 = ShowControlNode(network.nodes[curEdge.c1], curEdge);
 				Vector3 p3 = ShowNode (network.nodes[curEdge.n1], y, curEdge);
 
+				//Draw lines from nodes to the control nodes
 				Handles.color = Color.gray;
 				Handles.DrawLine(p0, p1);
 				Handles.DrawLine(p2, p3);
-				
+
+				//draw the bezier curve
 				Handles.DrawBezier(p0, p3, p1, p2, Color.white, null, 2f);
 				p0 = p3;
 
@@ -77,25 +82,28 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		}
 	}
 
+
+	/**
+	 * This method will display the control nodes in the scene-view 
+	*/
 	private Vector3 ShowControlNode(Node node, Edge edge){
 		Vector3 point = handleTransform.TransformPoint(node.pos);
 		Handles.color = Color.magenta;
 
-
+		//Check if we pressed the control node
 		if (Handles.Button(point, handleRotation, handleSize, pickSize, Handles.DotCap)) {
 			selectedEdge = edge;
 			selectedNode = node;
-
 			Repaint ();
 		}
-
+		//If we pressed the node, begin checking for change
 		if (selectedNode == node && node.isControlPoint) {
-
 			EditorGUI.BeginChangeCheck ();
 			point = Handles.DoPositionHandle (point, handleRotation);
 			if (EditorGUI.EndChangeCheck ()) {
 				Undo.RecordObject (network, "Move Control Point");
 				EditorUtility.SetDirty (network);
+				//Update position
 				Bezier.SetControlPoint(network, selectedEdge ,selectedNode, handleTransform.InverseTransformPoint(point));
 			}		
 
@@ -103,8 +111,9 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		return point;
 
 	}
-
-	
+	/**
+	 * This method will display the nodes in the scene-view 
+	*/
 	private Vector3 ShowNode(Node node, int index, Edge edge){
 
 		Vector3 point = handleTransform.TransformPoint(node.pos);
@@ -114,7 +123,7 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 		}
 		Handles.color = Color.white; //Handles.color = modeColors[(int)Bezier.GetControlPointMode(network,roadIndex,index)];
 
-
+		//Check if we pressed the node
 		if (Handles.Button(point, handleRotation, size * handleSize, size * pickSize, Handles.DotCap)) {
 			selectedIndex = index;
 			selectedEdge = edge;
@@ -122,11 +131,13 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 			Repaint ();
 		}
 
+		//These few lines will display what index the node has above it
 		GUIStyle style = new GUIStyle ();
 		style.normal.textColor = Color.white;
 		style.fontSize = 15;
 		Handles.Label (point + new Vector3(0,0.5f,0), "" + index,style );
 
+		//if we selected the node, check for changes and update
 		if (selectedIndex == index && !selectedNode.isControlPoint) {
 			EditorGUI.BeginChangeCheck();
 			point = Handles.DoPositionHandle(point, handleRotation);
@@ -181,7 +192,9 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	}
 	
 	
-	//Draw add-button
+	/**
+	 * This method creates the custom inspector GUI
+	*/
 	public override void OnInspectorGUI () {
 
 
@@ -220,33 +233,22 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 				}
 		}
 	}
-	
-	private void DrawSelectedPointInspector() {
 
+	/**
+	 * This method will display information about a selected nod in the inspector GUI
+	*/
+	private void DrawSelectedPointInspector() {
 		//Selected point in inspector
 		GUILayout.Label("Selected Point");
 		EditorGUI.BeginChangeCheck();
 		Vector3 point = EditorGUILayout.Vector3Field("Position", network.nodes[selectedIndex].pos);
-		//Debug.Log("RdIdx: " + roadIndex + " ptIdx: " + selectedIndex);
+		//check for change and update accordingly
 		if (EditorGUI.EndChangeCheck()) { 
 			Undo.RecordObject(network, "Move Point");
 			EditorUtility.SetDirty(network);
 			Bezier.SetControlPoint(network, selectedEdge, selectedNode, point);
 
 		}
-
-		/**
-		EditorGUI.BeginChangeCheck();
-		Bezier.BezierControlPointMode mode = (Bezier.BezierControlPointMode)
-			EditorGUILayout.EnumPopup("Mode", Bezier.GetControlPointMode(network,selectedEdge,selectedIndex));
-		if (EditorGUI.EndChangeCheck()) {
-			Undo.RecordObject(network, "Change Point Mode");
-			Bezier.SetControlPointMode(network, selectedEdge,selectedNode,  mode);
-			EditorUtility.SetDirty(network);
-		}
-		**/
-
-
 		//Number of connections in inspector
 		EditorGUILayout.IntField("Connections", network.GetNode(selectedIndex).NumConnections());
 

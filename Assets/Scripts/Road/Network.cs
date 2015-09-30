@@ -4,6 +4,13 @@ using System;
 using System.Collections.Generic;
 
 
+/**
+* This class is the wrapper class for the graph that contains all the roads.
+* It has functionality for managing the graph as well as to find a path from a node to another node.
+* 
+*/
+
+
 public class Network : MonoBehaviour {
 	
 	[SerializeField]
@@ -34,7 +41,7 @@ public class Network : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-
+		//Stick graph-related frame sensitive code here
 	}
 
 
@@ -68,13 +75,15 @@ public class Network : MonoBehaviour {
 
 	}
 
+	/**
+	 * This method will add an edge at a specified node in the graph.
+	 * The edge will start from the node and end with a newly created node. 
+	 * */
 	public Edge AddEdge(int nodeIndex){
 
 		Vector3 point = nodes [nodeIndex].pos;
 
 		Edge edge = new Edge ();
-
-
 
 
 		point.x += 1f;
@@ -119,31 +128,38 @@ public class Network : MonoBehaviour {
 		return -1;
 	}
 
-
+	/**
+	 * Merges an edge with a target node, 
+	 * the last node on the edge will be replaced by the target node.
+	**/
 	public void Merge(Edge fromEdge, int fromNode, int toNode){
 
 		Debug.Log ("Trying to merge n"+fromNode + " and n"+toNode);
 
 		int x = fromEdge.n0;
 		int y = toNode;
-	
+
+		//Check that this edge does not exist already
 		if (edges [x, y] == null) {
 
+			//transfer connections
 			AddConnections(toNode, nodes[fromNode].connections);
 
 			fromEdge.n1 = toNode;
-			
+
+			//Connect edges and remove old edge. 
 			edges [x, toNode] = fromEdge;
 			edges [x, fromNode] = null; 
 			edges.Remove (x,fromNode);
 
-					
+			//Remove all the old connections	
 			Node selectedNode = GetNode(fromNode);
 			for(int i = 0; i < selectedNode.NumConnections(); ++i ){
 				int oldConnection = selectedNode.GetConnectionIndex(i);
 				nodes[oldConnection].RemoveConnection(fromNode);
 				
 			}
+			//disable the node that was replaced (setting == null is unreliable)
 			nodes[fromNode].isActive = false;
 
 
@@ -160,49 +176,49 @@ public class Network : MonoBehaviour {
 
 	}
 
+	/**
+	 * This method will disconnect an edge from another edge
+	 * NOTE: currently not implemented
+	 * */ 
 	public void UnMerge(int nodeIndex){
 		Debug.Log ("Unmerging n"+nodeIndex);
 		//TODO
 	}
 
+	/**
+	 * Connects a node to all nodes in the inputlist
+	*/
 	public void AddConnections(int fromNode, List<int> toNodes){
 		for (int i = 0; i < toNodes.Count; ++i) {
 			AddConnection(fromNode,toNodes[i]);
 		}
 	}
 
+	/**
+	 * Connects all nodes in the list with eachother
+	*/
 	public void AddConnection(List<int> nodeIndexes){
 		for( int i = 1; i < nodeIndexes.Count; ++i){
 			AddConnection(nodeIndexes[i-1],nodeIndexes[i]);
 		}
 		
 	}
+
+	/**
+	 * Connects two specified nodes
+	*/
 	public void AddConnection(int index1, int index2){
 		nodes[index1].AddConnection(index2);
 		nodes[index2].AddConnection(index1);
 	}
-
-	public void setNodePos(int index, Vector3 pos){
-
-	}
-
-	public List<Edge> pathTo(Node source, Node destination){
-		//TODO
-		return new List<Edge>();
-	}
-
-
-	public bool addCars(int numCars){
-		Debug.Log ("Resizing car population to " + numCars);
-		//TODO
-		
-		return false;
-	}
+	
 
 	public List<Edge> PathTo(int source, int destination){
 		/**
 		 *	this A* variant was implemented straight off of wikipedias version
 		 *	https://en.wikipedia.org/wiki/A*_search_algorithm
+		 *
+		 *  See wiki for more information
 		**/
 
 		if (nodes [source].isControlPoint || nodes [destination].isControlPoint) {

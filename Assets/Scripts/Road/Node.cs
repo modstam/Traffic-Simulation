@@ -6,7 +6,7 @@ using System;
 public class Node{
 
 	[SerializeField]
-	public List<int> connections;
+	public List<int> connections; //stores the indexes of the nodes that are neighbours to this node
 
 	[SerializeField]
 	public Vector3 pos;
