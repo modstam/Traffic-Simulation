@@ -19,6 +19,8 @@ public class Car : MonoBehaviour
 	private float trafficPauseProgress = 0.90f; //Check if traffic light is green at this distance.
 	bool trafficChannelChecked = false;
 
+    int collCount = 0;
+
     public float CAR_EDGE_TIME = 5f;
 	
 	
@@ -179,7 +181,8 @@ public class Car : MonoBehaviour
 	{
 		if (otherCollider.tag == "CarBody")
 		{
-			//Debug.Log("CAR CROCK!");
+            //Debug.Log("CAR CROCK!");
+            collCount++;
 			carControl.pause();
 		}
 		
@@ -189,9 +192,12 @@ public class Car : MonoBehaviour
 	{
 		if (otherCollider.tag == "CarBody")
 		{
-			//Debug.Log("CAR DEEECROCK!");
-			
-			carControl.delayedResume();
+            //Debug.Log("CAR DEEECROCK!");
+            collCount--;
+            if (collCount == 0)
+            {
+                carControl.delayedResume();
+            }
 		}
 	}
 }
