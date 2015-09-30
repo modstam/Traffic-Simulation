@@ -16,19 +16,26 @@ public class Car : MonoBehaviour
 	public int myOriginId;
 	public int myGoalId;
 	//private float completeProgress = 0.99f; //Edge considered complete when t >= 0.99.
-	private float trafficPauseProgress = 0.90f; //Check if traffic light is green at this distance.
+	private float trafficPauseProgress = 0.85f; //Check if traffic light is green at this distance.
 	bool trafficChannelChecked = false;
 
-    int collCount = 0;
+    public int collCount = 0;
 
     public float CAR_EDGE_TIME = 5f;
-	
+
+    public Transform myBody;
+    public Transform myCheck;
+
+    public static float checkRadius = 0.25f;
+    public bool checkStatus = false;
 	
 	void Start()
 	{
 		//carHandler.onCarReady(this, -1);
 		//myGoal = new Vector3(60, 0, 0);
 		carControl.SetCar(this);
+        myBody.tag = "CarBody";
+        transform.tag = "Car";
 		restart();
 	}
 	
@@ -136,14 +143,29 @@ public class Car : MonoBehaviour
 			{
 				carControl.pause();
 			}
-		} 
-		// }
+		}
+
+        
+        if(!Physics.CheckSphere(myCheck.position, checkRadius))
+        {
+            if (collCount > 0)
+            {
+                collCount = 0;
+                checkStatus = false;
+                carControl.delayedResume();
+            }
+        } else
+        {
+            checkStatus = true;
+        }
+        
 	}
 	
 	public void OnGreenLight()
 	{
-		// Debug.Log("Resuming...");
-		carControl.resume();
+        // Debug.Log("Resuming...");
+        if(collCount <= 0)
+        carControl.resume();
 	}
 	
 	public void onStop()
@@ -194,10 +216,12 @@ public class Car : MonoBehaviour
 		{
             //Debug.Log("CAR DEEECROCK!");
             collCount--;
-            if (collCount == 0)
-            {
+            if (collCount < 0)
+                collCount = 0;
+            //if (collCount == 0)
+           // {
                 carControl.delayedResume();
-            }
+           // }
 		}
 	}
 }

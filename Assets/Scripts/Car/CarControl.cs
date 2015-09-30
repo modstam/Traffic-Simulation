@@ -37,13 +37,15 @@ public class CarControl : MonoBehaviour
     private Vector3 transferStartPos;
 
     //When an edged is to be considered traversed
-    public static float EDGE_PROGRESS_REQ = 0.92f;
+    public static float EDGE_PROGRESS_REQ = 0.97f;
     //The speed units/s of a transfer
     public static float TRANSFER_SPEED = 6f;
     //rotate car every 7th frame
-    private static int ROTATION_INTENSITY = 10;
+    private static int ROTATION_INTENSITY = 7;
     //Minimum distance required to change rotation
     private static float MIN_ROT_DIST = 0.2f;
+    //Start edge travel a bit later
+    private static float START_EDGE_PROGRESS = 0.00f;
 
 
     void Awake()
@@ -225,7 +227,7 @@ public class CarControl : MonoBehaviour
             
 
             if (edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, 1f, Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
-			else transferEnd = myCar.getEdgePointOffset(edge, 0f, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
+			else transferEnd = myCar.getEdgePointOffset(edge, START_EDGE_PROGRESS, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
 
             transferProgress = 0f;
             transferStartPos = transform.position;
@@ -251,7 +253,7 @@ public class CarControl : MonoBehaviour
         if (!edge.reverse)
         {
             firstLook = myCar.getNodePosition(edge.c0);
-            edgeProgress = 0;
+            edgeProgress = START_EDGE_PROGRESS;
             goingReverse = false;
         }
         else
