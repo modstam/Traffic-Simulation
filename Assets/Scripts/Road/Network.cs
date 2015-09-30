@@ -250,7 +250,7 @@ public class Network : MonoBehaviour {
 
 
 		while (count > 0) {
-			int current = FindLowestIndex(fScore);
+			int current = FindLowestScore(fScore);
 			if(current == destination){
 				//Debug.Log ("found path from " + source + " to " + destination);
 				return ConstructPath (cameFrom, current, source);
@@ -285,7 +285,7 @@ public class Network : MonoBehaviour {
 
 
 
-	private int FindLowestIndex(Dictionary<int, float> inMap){
+	private int FindLowestScore(Dictionary<int, float> inMap){
 		int lowestIndex = -1;
 		float lowestValue = float.MaxValue;
 		foreach(KeyValuePair<int,float> kvp in inMap){
