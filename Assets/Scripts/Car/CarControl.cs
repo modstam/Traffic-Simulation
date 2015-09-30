@@ -1,39 +1,33 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/**
+    This class handles the movements and control of a Car.
+**/
 public class CarControl : MonoBehaviour
 {
-
-    private float speedLimit = 0;
-    //private Rigidbody myBody;
-    public float distanceTraveled = 0;
-    public float targetDistance = 0;
-    private Vector3 startPos;
-    private Vector3 targetDirection;
-    private bool going = false; //When freely moving straight towards a node
     public bool traversing = false;  //When traveling along a curved edge
     private bool paused = false; //when temporarily stopping because of obstacle/traffic light
 
-    private Edge curEdge;
+    private Edge curEdge; //currently traveling on this edge
 	private Edge prevEdge;
-    public float edgeProgress = 0f;
-    public float edgeTime = 0f;
-    public bool goingReverse;
+    public float edgeProgress = 0f; //going form 0 to 100% 
+    public float edgeTime = 0f; //how long time it takes to complete an edge
+    public bool goingReverse; //If the current edge is from B to A rather than A to B.
 
-    public Transform graphicTransform;
-    public Car myCar;
+    //public Transform graphicTransform; //
+    public Car myCar; //The Car script managing higher level car tasks
 
-    private Vector3 previousPos;
-    private int rotationUpdateCounter;
+    private Vector3 previousPos; //used for calculating a delta vektor between to points.
+
+    private int rotationUpdateCounter; //how long a go the car rotation was updated
     
 
 	//members for transfering the car between two edges
 	private bool transferMode = false;
-	//private Vector3 transferStart;
 	private Vector3 transferEnd;
 	private float transferProgress = 0f;
 	private float transferDistance = 0f;
-
     private Vector3 transferStartPos;
 
     //When an edged is to be considered traversed
@@ -47,52 +41,30 @@ public class CarControl : MonoBehaviour
     //Start edge travel a bit later
     private static float START_EDGE_PROGRESS = 0.00f;
 
-
-    void Awake()
-    {
-        startPos = transform.position;
-    }
-
     // Use this for initialization
     void Start()
-    {
-        //transform.rotation = Quaternion.LookRotation(new Vector3(1,0,0));
-        //Go (1000, 20, new Vector3(0,0,1));
-    }
+    {}
 
-    public void Go(float distance, float speedLimit, Vector3 direction)
-    {
-        targetDirection = direction;
-        //if (direction.y != 0f)
-            //Debug.Log("New direction: " + direction);
-        transform.rotation = Quaternion.LookRotation(direction);
-        startPos = transform.position;
-        distanceTraveled = 0;
-        this.speedLimit = speedLimit;
-        targetDistance = distance;
-        //myBody.velocity = speedLimit * direction;
-        going = true;
-    }
-
+    //Stop the car
     void Stop()
     {
-        //myBody.velocity = Vector3.zero;
-        speedLimit = 0f;
         traversing = false;
-        going = false;
         myCar.onStop();
     }
 
+    //API function for pausing the cars movement
     public void pause()
     {
         paused = true;
     }
 
+    //API function for resuming the cars movement
     public void resume()
     {
         paused = false;
     }
 
+    //Resume after 1 second
     public void delayedResume()
     {
         Invoke("resume", 1);
@@ -101,53 +73,30 @@ public class CarControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!paused)
+        if (!paused && traversing)
         {
-            if (going)
+            if (!goingReverse)
             {
-                distanceTraveled = (startPos - transform.position).magnitude;
-
-
-                if (distanceTraveled > targetDistance)
+                if (edgeProgress > EDGE_PROGRESS_REQ) //finnished
                 {
                     Stop();
-                    //Go(Random.Range(500f, 1500f), Random.Range(10f, 25f), new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f)));
                 }
-                else
-                {
-                    MovementGo();
-                }
-            }
-            else if (traversing)
+            } else
             {
-                if (!goingReverse)
+                if (edgeProgress < 1 - EDGE_PROGRESS_REQ) //finnished
                 {
-                    if (edgeProgress > EDGE_PROGRESS_REQ) //finnished
-                    {
-                        Stop();
-                    }
-                } else
-                {
-                    if (edgeProgress < 1 - EDGE_PROGRESS_REQ) //finnished
-                    {
-                        Stop();
-                    }
+                    Stop();
                 }
-                MovementTraverse(Time.deltaTime);
             }
-
+            MovementTraverse(Time.deltaTime); //update movement
         }
 
     }
 
-    void MovementGo()
-    {
-        transform.Translate(transform.forward * 1 * Time.deltaTime * speedLimit, Space.World);
-    }
-
+    //Update the movement of the car when traversing
     void MovementTraverse(float deltaTime)
     {
-
+        //If we are transfering the car between two edges
 		if (transferMode) {
 
 			Debug.Log("transferMode");
@@ -164,11 +113,6 @@ public class CarControl : MonoBehaviour
 				Debug.Log ("interpolating");
 
 				Vector3 newPos = Vector3.Lerp (transferStartPos,transferEnd, transferProgress);
-                //Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
-
-
-                //transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
-                //previousPos = transform.position;
 
                 //rotation fix
                 transform.rotation = Quaternion.LookRotation((transferEnd - transferStartPos).normalized);
@@ -176,42 +120,40 @@ public class CarControl : MonoBehaviour
 
                 transform.position = newPos;
 			}
-
-		
-
-
-		} else {
+		} else { //If moving the car along an edge
+            //If we are going in reverse, progres goes from 100% to 0 % instead of the other way around.
 			if (!goingReverse)
-			{
+			{   
 				edgeProgress += deltaTime / edgeTime;
 			}
 			else
 			{
 				edgeProgress -= deltaTime / edgeTime;
 			}
-			
+			//What's our new position
 			Vector3 newPos = myCar.getEdgePointOffset(curEdge,edgeProgress, transform.rotation);
-			//Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
-			rotationUpdateCounter++;
-			if(rotationUpdateCounter > ROTATION_INTENSITY)
+			rotationUpdateCounter++; //Update the rotation very ROTATION_INTENSITY:th frame
+            if (rotationUpdateCounter > ROTATION_INTENSITY)
 			{
-                if ((newPos - previousPos).magnitude > MIN_ROT_DIST)
+                if ((newPos - previousPos).magnitude > MIN_ROT_DIST) //If we have traveled long enough since last rotation
                 {
                     rotationUpdateCounter = 0;
                     transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
                     previousPos = transform.position;
                 }
 			}
-			//transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
+            //Update car position:
 			transform.position = newPos;
 		}
 	}
 	
+    //Assign a Car-object
 	public void SetCar(Car car)
 	{
 		myCar = car;
 	}
 	
+    //API function for traversing an edge in edgeTime amount of seconds
 	public void TraverseEdge(Edge edge, float edgeTime)
     {
 
@@ -221,38 +163,33 @@ public class CarControl : MonoBehaviour
 
 			this.prevEdge = curEdge;
 
-
-			//if(prevEdge.reverse) transferStart = myCar.getEdgePointOffset(prevEdge, 0f, transform.rotation);
-			//else transferStart = myCar.getEdgePointOffset(prevEdge, 1f, transform.rotation);
-            
-
+            //Find out where the next edge starts
             if (edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, 1f, Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
 			else transferEnd = myCar.getEdgePointOffset(edge, START_EDGE_PROGRESS, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
 
             transferProgress = 0f;
             transferStartPos = transform.position;
             transferDistance = Vector3.Distance(transferStartPos,transferEnd);
-            
-
 
 		}
-
+        //Set up the edge travling to be done after the transfer between the two edges.
         startEdgeTravel(edge, edgeTime);
        
     }
 
+    //Start an edge travel, which will be done in edgeTime amount of seconds
     private void startEdgeTravel(Edge edge, float edgeTime)
     {
         this.edgeTime = edgeTime;
         this.curEdge = edge;
 
-        //Debug.Log("Edgetime: " + edgeTime + ". Edge: " + edge);
-
+        //where are we now?
         Vector3 startPos = transform.position;
         Vector3 firstLook;
+        //where do we look? :
         if (!edge.reverse)
         {
-            firstLook = myCar.getNodePosition(edge.c0);
+            firstLook = myCar.getNodePosition(edge.c0); //use the first control node of the edge as look target
             edgeProgress = START_EDGE_PROGRESS;
             goingReverse = false;
         }
@@ -262,11 +199,13 @@ public class CarControl : MonoBehaviour
             edgeProgress = 1;
             goingReverse = true;
         }
+
+        //Set look-at-rotation of the car
         transform.rotation = Quaternion.LookRotation((firstLook - startPos).normalized);
+        //Get the point of the curve on which we position ourselves
         transform.position = myCar.getEdgePointOffset(curEdge, edgeProgress, transform.rotation);
 
         previousPos = transform.position;
-        //rotationUpdateCounter = (int) (rotationIntensity * 0.9);
         traversing = true;
         rotationUpdateCounter = 0;
     }

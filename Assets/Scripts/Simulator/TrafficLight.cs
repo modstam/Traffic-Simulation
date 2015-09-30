@@ -3,66 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+//A class for keeping track of a the traffic light which lies between at least 2 surrounding nodes.
+// Each pair of these surrounding nodes forms a "channel", and the traffic light keeps 1 channel
+// open at a time, rotating between the channels and notifying waiting cars when their channels are opened.
 public class TrafficLight {
 
     private bool INITIALIZED = false;
-    private IntPair[] channels;
-    public int nodeId;
-    public int openChannel;
+    private IntPair[] channels; //All the possible channels that 
+    public int nodeId; //the nodeId of the traffic light node
+    public int openChannel; //the currently open channel
 
-    private List<Car>[] waitingCars; //waitingCars[2] are cars waiting for channel 2 to open.
+    private List<Car>[] waitingCars; //waitingCars[2] are the cars waiting for channel 2 to open.
 
     public float frequency; //how often the traffic lights change
     private float timeSinceChange;
 
-    /*public static TrafficLight CreateComponent(GameObject parent, Node node, int nodeId, float frequency)
-    {
-        TrafficLight tl = parent.AddComponent<TrafficLight>();
-        tl.init(node, nodeId, frequency);
-        return tl;
-    }
-    
-    public void init(Node node, int nodeId, float frequency)
-    {
-        Debug.Log("INITING TFL");
-        this.frequency = frequency;
-        this.nodeId = nodeId;
-
-        channels = new IntPair[(node.connections.Count * (node.connections.Count - 1))/2];
-        //Only need one channel per pair, ie. don't need both (a,b) and (b,a)
-        for (int i = 0; i < node.connections.Count - 1; i++)
-        {
-            for (int j = node.connections.Count - 1; j > i; j--)
-            {
-                channels[i] = new IntPair(node.connections[i], node.connections[j]);
-            }
-        }
-        printChannels();
-
-        waitingCars = new List<Car>[channels.Length];
-        for (int i = 0; i < channels.Length; i++)
-        {
-            waitingCars[i] = new List<Car>();
-        }
-
-        openChannel = 0;
-        INITIALIZED = true;
-    }*/
 
     public TrafficLight(Node node, int nodeId, float frequency)
     {
-        //Debug.Log("INITING TFL");
         this.frequency = frequency;
         this.nodeId = nodeId;
 
+        // Create the channels, using the node connections to discover surrounding nodes.
         channels = new IntPair[(node.connections.Count * (node.connections.Count - 1)) / 2];
-        //Only need one channel per pair, ie. don't need both (a,b) and (b,a)
+        //Only need one channel per pair, ie. don't need both (a,b) and (b,a):
         int index = 0;
         for (int i = 0; i < node.connections.Count - 1; i++)
         {
             for (int j = node.connections.Count - 1; j > i; j--)
             {
-                //Debug.Log("Adding when i=" + i + ", j=" + j + ". node#" + node.connections[i] + "<->node#" + node.connections[j]);
                 channels[index] = new IntPair(node.connections[i], node.connections[j]);
                 index++;
             }
@@ -81,26 +50,19 @@ public class TrafficLight {
     }
 
 	
-	// Update is NOT called automatically, must be called every update() of parent.
+	// update is NOT called automatically, must be called every Update() of parent.
+    // This is the method that rotates the open channels, and notifies cars.
 	public void update (float deltaTime) {
-        //Debug.Log("updating tfl");
         timeSinceChange += deltaTime;
         if (timeSinceChange > frequency)
         {
-            //Debug.Log("pre openchannel:" + openChannel);
             timeSinceChange = 0;
             openChannel = (openChannel < channels.Length - 1) ? openChannel + 1 : 0;
             foreach (Car car in waitingCars[openChannel])
             {
-                //Debug.Log("Resuming CAHRS");
                 car.OnGreenLight(); //notify the cars waiting for this openChannel
             }
-            int a = 2;
-            //Debug.Log("post openchannel:" + openChannel);
-            //Debug.Log("channels[openchannel]" + channels[openChannel]);
-            //Debug.Log("channels.length: " + channels.Length);
-            //Debug.Log("(openChannel < channels.Length - 1) is " + (openChannel < channels.Length - 1));
-            Debug.Log("Changing trafficlight #" + nodeId + " to open [" + channels[openChannel].x + " <-> " + channels[openChannel].y + "].");
+            //Debug.Log("Changing trafficlight #" + nodeId + " to open [" + channels[openChannel].x + " <-> " + channels[openChannel].y + "].");
         }
 	}
 
@@ -125,6 +87,7 @@ public class TrafficLight {
         return false;
     }
 
+    //simply check if a channel is open.
     public bool isOpen(int nodeFrom, int nodeTo)
     {
         if(channels[openChannel].containsBoth(nodeFrom, nodeTo))
