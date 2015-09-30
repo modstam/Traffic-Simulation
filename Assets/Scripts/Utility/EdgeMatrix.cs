@@ -14,7 +14,6 @@ public class EdgeMatrix : ISerializationCallbackReceiver {
 
 	[SerializeField]
 	public Dictionary<string,Edge> edges;
-	public Hashtable edgeTable;
 
 	public List<string> keys = new List<string>();
 	public List<Edge> values = new List<Edge>();
