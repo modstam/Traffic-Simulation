@@ -37,7 +37,7 @@ public class CarControl : MonoBehaviour
     private Vector3 transferStartPos;
 
     //When an edged is to be considered traversed
-    public static float EDGE_PROGRESS_REQ = 0.97f;
+    public static float EDGE_PROGRESS_REQ = 0.92f;
     //The speed units/s of a transfer
     public static float TRANSFER_SPEED = 6f;
     //rotate car every 7th frame

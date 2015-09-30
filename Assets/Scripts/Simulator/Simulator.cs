@@ -5,13 +5,14 @@ using System;
 
 [System.Serializable]
 [ExecuteInEditMode]
-public class Simulator : MonoBehaviour {
+public class Simulator : MonoBehaviour
+{
 
-	public bool DEBUG_PATHFINDING = false;
+    public bool DEBUG_PATHFINDING = false;
 
 
-	[SerializeField]
-	Network network;
+    [SerializeField]
+    Network network;
     public List<Car> cars;
     public Car testcar; //testcar
     public List<int> trafficLightNodes; //Input in editor which nodes are to have traffic lights
@@ -20,7 +21,7 @@ public class Simulator : MonoBehaviour {
 
     public List<int> endNodes;
 
-    public Rigidbody carPrefab;
+    public List<Rigidbody> carPrefabs;
     public int carsToSpawn = 0;
     private int carsSpawned = 0;
     public float carSpawnIntensity = 1f; // seconds
@@ -28,49 +29,54 @@ public class Simulator : MonoBehaviour {
     private int spawnEndNode;
     public float laneWidth = 1.5f;
 
-    void Awake(){
-		if (!Application.isPlaying) {
-			network = gameObject.GetComponent<Network>();
-			if(network == null)
-				this.network = gameObject.AddComponent<Network>();
-		}
+    void Awake()
+    {
+        if (!Application.isPlaying)
+        {
+            network = gameObject.GetComponent<Network>();
+            if (network == null)
+                this.network = gameObject.AddComponent<Network>();
+        }
 
         //testcar.setSimulator(this);
 
-       // foreach (Car car in cars)
-       // {
-       //     car.setSimulator(this);
-      //      Debug.Log("SET SIM!");
-    //    }
+        // foreach (Car car in cars)
+        // {
+        //     car.setSimulator(this);
+        //      Debug.Log("SET SIM!");
+        //    }
 
         //Add traffic lights
         trafficLights = new List<TrafficLight>();
-        if(trafficLightNodes != null)
+        if (trafficLightNodes != null)
         {
-            for(int i = 0; i < trafficLightNodes.Count; i++)
+            for (int i = 0; i < trafficLightNodes.Count; i++)
             {
                 trafficLights.Add(new TrafficLight(network.nodes[trafficLightNodes[i]], trafficLightNodes[i], trafficLightChangeFrequency));
             }
-            
+
         }
 
         spawnEndNode = 0;
     }
 
-	// Use this for initialization
-	void Start () {
-        
-    }
-	
-	// Update is called once per frame
-	void Update () {
-        //Debug.Log("Uppadado?");
-        if (DEBUG_PATHFINDING && Application.isPlaying) {
-			DEBUG_PATHFINDING = false;
-			TestPathFinding();
+    // Use this for initialization
+    void Start()
+    {
 
-		}
-        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //Debug.Log("Uppadado?");
+        if (DEBUG_PATHFINDING && Application.isPlaying)
+        {
+            DEBUG_PATHFINDING = false;
+            TestPathFinding();
+
+        }
+
         foreach (TrafficLight trafficLight in trafficLights)
         {
             trafficLight.update(Time.deltaTime);
@@ -78,7 +84,7 @@ public class Simulator : MonoBehaviour {
 
         if (carsSpawned < carsToSpawn)
         {
-           
+
             if (timeSinceCarSpawn > carSpawnIntensity)
             {
                 carsSpawned++;
@@ -91,12 +97,13 @@ public class Simulator : MonoBehaviour {
                 timeSinceCarSpawn += Time.deltaTime;
             }
         }
-        
-	}
+
+    }
 
     void spawnCar(int fromNodeId)
     {
-        Rigidbody carClone = (Rigidbody)Instantiate(carPrefab, getNodePosition(fromNodeId), transform.rotation);
+        int carPrefabId = UnityEngine.Random.Range(0, carPrefabs.Count);
+        Rigidbody carClone = (Rigidbody)Instantiate(carPrefabs[carPrefabId], getNodePosition(fromNodeId), transform.rotation);
         Car car = carClone.GetComponent<Car>();
         int goalNodeId = fromNodeId;
         //Debug.Log("From(" + fromNodeId + ") is at: " + getNodePosition(fromNodeId) + ".");
@@ -111,7 +118,7 @@ public class Simulator : MonoBehaviour {
         cars.Add(car);
     }
 
-    
+
     public List<Edge> pathFromTo(Vector3 position, Vector3 target)
     {
         Debug.Log("Looking for nodes corresponding to : " + position + " and " + target);
@@ -163,82 +170,95 @@ public class Simulator : MonoBehaviour {
     }
 
 
-    void TestPathFinding(){
-		Debug.Log ("Testing pathfinding...this may take a while");
-		int nr = 0;
-		int nr_errors = 0;
+    void TestPathFinding()
+    {
+        Debug.Log("Testing pathfinding...this may take a while");
+        int nr = 0;
+        int nr_errors = 0;
 
-		for (int x = 0; x < network.nodes.Count; ++x) {
-			if(!network.nodes[x].isActive) continue;
-			if(network.nodes[x].isControlPoint) continue;
-			for (int y = 0; y < network.nodes.Count; ++y) {
-				if(!network.nodes[y].isActive) continue;
-				if(network.nodes[y].isControlPoint) continue;
-				if(x==y) continue; //don't test path from and to the same node
-			
-				List<Edge> path = network.PathTo(x,y);
-				bool pass = CheckPath(path,x,y);
-				if(!pass) ++nr_errors; 
-				string[] listString = new string[path.Count];
-				for(int i = 0; i < path.Count; ++i){
-					listString[i] = path[i].ToString();
-				}
-				Debug.Log (pass + ": Test nr " + nr + ": from " + x + " to " + y + "; List size: " + path.Count + ": " + string.Join(", ",listString) );
-				++nr;
-			}	
-		}
-		Debug.Log ("Testing complete, errors: " + nr_errors); 
-	}
+        for (int x = 0; x < network.nodes.Count; ++x)
+        {
+            if (!network.nodes[x].isActive) continue;
+            if (network.nodes[x].isControlPoint) continue;
+            for (int y = 0; y < network.nodes.Count; ++y)
+            {
+                if (!network.nodes[y].isActive) continue;
+                if (network.nodes[y].isControlPoint) continue;
+                if (x == y) continue; //don't test path from and to the same node
 
-	private bool CheckPath(List<Edge> path, int start, int goal){
+                List<Edge> path = network.PathTo(x, y);
+                bool pass = CheckPath(path, x, y);
+                if (!pass) ++nr_errors;
+                string[] listString = new string[path.Count];
+                for (int i = 0; i < path.Count; ++i)
+                {
+                    listString[i] = path[i].ToString();
+                }
+                Debug.Log(pass + ": Test nr " + nr + ": from " + x + " to " + y + "; List size: " + path.Count + ": " + string.Join(", ", listString));
+                ++nr;
+            }
+        }
+        Debug.Log("Testing complete, errors: " + nr_errors);
+    }
 
-		//check if we can reach our destination through the edges
-		bool edge_check = true;
+    private bool CheckPath(List<Edge> path, int start, int goal)
+    {
 
-		if (path == null || path.Count == 0) {
-			return true;
-		}
+        //check if we can reach our destination through the edges
+        bool edge_check = true;
 
-		if (path.Count == 1) {
-			if(path[0].reverse)
-				return (path[0].n1 == start && path[0].n0 == goal);
-			else
-				return (path[0].n0 == start && path[0].n1 == goal);
-		}
+        if (path == null || path.Count == 0)
+        {
+            return true;
+        }
 
-		Edge prevEdge;
-		Edge curEdge; 
-		for (int i = 1; i < path.Count && edge_check; ++i) {
-			prevEdge = path[i-1];
-			curEdge = path[i];
+        if (path.Count == 1)
+        {
+            if (path[0].reverse)
+                return (path[0].n1 == start && path[0].n0 == goal);
+            else
+                return (path[0].n0 == start && path[0].n1 == goal);
+        }
 
-			if(prevEdge.reverse && curEdge.reverse){
-				if(!(prevEdge.n0 == curEdge.n1))
-					edge_check = false;
-			}
-			else if(prevEdge.reverse && !curEdge.reverse){
-				if(!(prevEdge.n0 == curEdge.n0))
-					edge_check = false;
-			}
-			else if(!prevEdge.reverse && curEdge.reverse){
-				if(!(prevEdge.n1 == curEdge.n1))
-					edge_check = false;
-			}
-			else if(!prevEdge.reverse && !curEdge.reverse) {
-				if(!(prevEdge.n1 == curEdge.n0))
-					edge_check = false;
-			}
-		}
+        Edge prevEdge;
+        Edge curEdge;
+        for (int i = 1; i < path.Count && edge_check; ++i)
+        {
+            prevEdge = path[i - 1];
+            curEdge = path[i];
 
-		Debug.Assert (edge_check);
-		return edge_check;
-	}
+            if (prevEdge.reverse && curEdge.reverse)
+            {
+                if (!(prevEdge.n0 == curEdge.n1))
+                    edge_check = false;
+            }
+            else if (prevEdge.reverse && !curEdge.reverse)
+            {
+                if (!(prevEdge.n0 == curEdge.n0))
+                    edge_check = false;
+            }
+            else if (!prevEdge.reverse && curEdge.reverse)
+            {
+                if (!(prevEdge.n1 == curEdge.n1))
+                    edge_check = false;
+            }
+            else if (!prevEdge.reverse && !curEdge.reverse)
+            {
+                if (!(prevEdge.n1 == curEdge.n0))
+                    edge_check = false;
+            }
+        }
+
+        Debug.Assert(edge_check);
+        return edge_check;
+    }
 
     public bool isChannelOpen(int fromNodeId, int toNodeId, int viaNodeId, Car car)
     {
         bool foundTrafficLight = false;
         //Debug.Log("isChannelOpen? trafficLights.count: " + trafficLights.Count);
-        foreach(TrafficLight trafficLight in trafficLights) {
+        foreach (TrafficLight trafficLight in trafficLights)
+        {
             if (trafficLight.nodeId == viaNodeId)
             {
                 foundTrafficLight = true;
@@ -248,7 +268,7 @@ public class Simulator : MonoBehaviour {
                 return true;
             }
         }
-        
+
         return !foundTrafficLight; //return true if traffic light is not found
     }
 
