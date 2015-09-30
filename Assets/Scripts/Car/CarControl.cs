@@ -25,16 +25,25 @@ public class CarControl : MonoBehaviour
 
     private Vector3 previousPos;
     private int rotationUpdateCounter;
-    private int rotationIntensity = 7; //rotate car every 7th frame
+    
 
 	//members for transfering the car between two edges
 	private bool transferMode = false;
-	private Vector3 transferStart;
+	//private Vector3 transferStart;
 	private Vector3 transferEnd;
 	private float transferProgress = 0f;
 	private float transferDistance = 0f;
 
     private Vector3 transferStartPos;
+
+    //When an edged is to be considered traversed
+    public static float EDGE_PROGRESS_REQ = 0.97f;
+    //The speed units/s of a transfer
+    public static float TRANSFER_SPEED = 6f;
+    //rotate car every 7th frame
+    private static int ROTATION_INTENSITY = 10;
+    //Minimum distance required to change rotation
+    private static float MIN_ROT_DIST = 0.2f;
 
 
     void Awake()
@@ -111,13 +120,13 @@ public class CarControl : MonoBehaviour
             {
                 if (!goingReverse)
                 {
-                    if (edgeProgress > 0.99f) //finnished
+                    if (edgeProgress > EDGE_PROGRESS_REQ) //finnished
                     {
                         Stop();
                     }
                 } else
                 {
-                    if (edgeProgress < 0.01f) //finnished
+                    if (edgeProgress < 1 - EDGE_PROGRESS_REQ) //finnished
                     {
                         Stop();
                     }
@@ -140,7 +149,7 @@ public class CarControl : MonoBehaviour
 		if (transferMode) {
 
 			Debug.Log("transferMode");
-			transferProgress += (1/transferDistance)*deltaTime;
+			transferProgress += (1/transferDistance)*deltaTime*TRANSFER_SPEED;
 
 			if(transferProgress >= 1.0f){
 				Debug.Log ("transferprogress: " + transferProgress);
@@ -152,7 +161,7 @@ public class CarControl : MonoBehaviour
 
 				Debug.Log ("interpolating");
 
-				Vector3 newPos = Vector3.Lerp (transferStart,transferEnd, transferProgress);
+				Vector3 newPos = Vector3.Lerp (transferStartPos,transferEnd, transferProgress);
                 //Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
 
 
@@ -182,11 +191,14 @@ public class CarControl : MonoBehaviour
 			Vector3 newPos = myCar.getEdgePointOffset(curEdge,edgeProgress, transform.rotation);
 			//Debug.Log("NewPos: " + newPos + ", EdgeProgress: " + edgeProgress);
 			rotationUpdateCounter++;
-			if(rotationUpdateCounter > rotationIntensity)
+			if(rotationUpdateCounter > ROTATION_INTENSITY)
 			{
-				rotationUpdateCounter = 0;
-				transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
-				previousPos = transform.position;
+                if ((newPos - previousPos).magnitude > MIN_ROT_DIST)
+                {
+                    rotationUpdateCounter = 0;
+                    transform.rotation = Quaternion.LookRotation((newPos - previousPos).normalized);
+                    previousPos = transform.position;
+                }
 			}
 			//transform.rotation = Quaternion.LookRotation((transform.position - newPos).normalized);
 			transform.position = newPos;
@@ -208,15 +220,17 @@ public class CarControl : MonoBehaviour
 			this.prevEdge = curEdge;
 
 
-			if(prevEdge.reverse) transferStart = myCar.getEdgePointOffset(prevEdge, 0f, transform.rotation);
-			else transferStart = myCar.getEdgePointOffset(prevEdge, 1f, transform.rotation);
+			//if(prevEdge.reverse) transferStart = myCar.getEdgePointOffset(prevEdge, 0f, transform.rotation);
+			//else transferStart = myCar.getEdgePointOffset(prevEdge, 1f, transform.rotation);
+            
 
             if (edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, 1f, Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
 			else transferEnd = myCar.getEdgePointOffset(edge, 0f, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
 
             transferProgress = 0f;
-			transferDistance = Vector3.Distance(transferStart,transferEnd);
             transferStartPos = transform.position;
+            transferDistance = Vector3.Distance(transferStartPos,transferEnd);
+            
 
 
 		}

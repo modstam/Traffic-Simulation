@@ -15,10 +15,11 @@ public class Car : MonoBehaviour
 	public int curEdgeIndex;
 	public int myOriginId;
 	public int myGoalId;
-	private float completeProgress = 0.99f; //Edge considered complete when t >= 0.99.
+	//private float completeProgress = 0.99f; //Edge considered complete when t >= 0.99.
 	private float trafficPauseProgress = 0.90f; //Check if traffic light is green at this distance.
 	bool trafficChannelChecked = false;
-	
+
+    public float CAR_EDGE_TIME = 5f;
 	
 	
 	void Start()
@@ -68,7 +69,7 @@ public class Car : MonoBehaviour
 	
 	public void TraverseEdge(Edge edge)
 	{
-		float edgeTime = 2f; //TODO HARDCODED VALUE
+        float edgeTime = CAR_EDGE_TIME;
 		carControl.TraverseEdge(edge, edgeTime);
 	}
 	
@@ -147,8 +148,8 @@ public class Car : MonoBehaviour
 	{
 		//Debug.Log("STOP!");
 		//If we finnished the previous travel command
-		if ( ( (carControl.goingReverse && (carControl.edgeProgress < (1-completeProgress) ) )
-		      || (carControl.edgeProgress > completeProgress) )
+		if ( ( (carControl.goingReverse && (carControl.edgeProgress < (1-CarControl.EDGE_PROGRESS_REQ) ) )
+		      || (carControl.edgeProgress > CarControl.EDGE_PROGRESS_REQ) )
 		    || (transform.position - targetPos).magnitude < 1f)
 		{
 			curEdgeIndex += 1;
