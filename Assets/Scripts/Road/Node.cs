@@ -12,9 +12,6 @@ public class Node{
 	public Vector3 pos;
 
 	[SerializeField]
-	public Quaternion rot;
-
-	[SerializeField]
 	public bool isControlPoint;
 
 	[SerializeField]
@@ -28,7 +25,6 @@ public class Node{
 
 	public Node(Vector3 pos, Quaternion rot){
 		this.pos = pos;
-		this.rot = rot;
 		connections = new List<int>();
 		isControlPoint = false;
 	}
