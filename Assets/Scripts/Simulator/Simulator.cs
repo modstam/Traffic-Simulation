@@ -13,21 +13,20 @@ public class Simulator : MonoBehaviour
 
     [SerializeField]
     Network network;
-    public List<Car> cars;
-    public Car testcar; //testcar
+    public List<Car> cars; //All the cars of the simulation
     public List<int> trafficLightNodes; //Input in editor which nodes are to have traffic lights
     private List<TrafficLight> trafficLights;
     public float trafficLightChangeFrequency = 4f; //Input in editor how often the traffic lights change
 
-    public List<int> endNodes;
+    public List<int> endNodes; //The nodes that are at the edge of the network, which only have 1 connecting node.
 
-    public List<Rigidbody> carPrefabs;
-    public int carsToSpawn = 0;
-    private int carsSpawned = 0;
-    public float carSpawnIntensity = 1f; // seconds
+    public List<Rigidbody> carPrefabs; //The different types of cars to spawn
+    public int carsToSpawn = 0; //How many cars that should be spawned
+    private int carsSpawned = 0; //How many cars we have spawned
+    public float carSpawnIntensity = 1f; // how often we spawn new cars in seconds
     private float timeSinceCarSpawn = 0f;
-    private int spawnEndNode;
-    public float laneWidth = 1.5f;
+    private int spawnEndNode; //the node from which we last spawned a car
+    public float laneWidth = 1.5f; //the width of the lanes
 
     void Awake()
     {
@@ -38,14 +37,7 @@ public class Simulator : MonoBehaviour
                 this.network = gameObject.AddComponent<Network>();
         }
 
-        //testcar.setSimulator(this);
-
-        // foreach (Car car in cars)
-        // {
-        //     car.setSimulator(this);
-        //      Debug.Log("SET SIM!");
-        //    }
-
+   
         //Add traffic lights
         trafficLights = new List<TrafficLight>();
         if (trafficLightNodes != null)
@@ -69,7 +61,6 @@ public class Simulator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log("Uppadado?");
         if (DEBUG_PATHFINDING && Application.isPlaying)
         {
             DEBUG_PATHFINDING = false;
@@ -77,11 +68,13 @@ public class Simulator : MonoBehaviour
 
         }
 
+        //update the trafficlights
         foreach (TrafficLight trafficLight in trafficLights)
         {
             trafficLight.update(Time.deltaTime);
         }
 
+        //Spawn new cars
         if (carsSpawned < carsToSpawn)
         {
 
@@ -90,6 +83,7 @@ public class Simulator : MonoBehaviour
                 carsSpawned++;
                 timeSinceCarSpawn = 0f;
                 spawnCar(endNodes[spawnEndNode]);
+                //Change the node from which the next car whould spawn from
                 spawnEndNode = (spawnEndNode < endNodes.Count - 1) ? spawnEndNode + 1 : 0;
             }
             else
@@ -100,25 +94,25 @@ public class Simulator : MonoBehaviour
 
     }
 
+    //Spawn a car at the node Id
     void spawnCar(int fromNodeId)
     {
-        int carPrefabId = UnityEngine.Random.Range(0, carPrefabs.Count);
+        int carPrefabId = UnityEngine.Random.Range(0, carPrefabs.Count); //random car model amongst the possible ones
         Rigidbody carClone = (Rigidbody)Instantiate(carPrefabs[carPrefabId], getNodePosition(fromNodeId), transform.rotation);
         Car car = carClone.GetComponent<Car>();
         int goalNodeId = fromNodeId;
-        //Debug.Log("From(" + fromNodeId + ") is at: " + getNodePosition(fromNodeId) + ".");
         while (goalNodeId == fromNodeId)
         {
+            //Get a random goal node from the endnodes
             goalNodeId = endNodes[UnityEngine.Random.Range(0, endNodes.Count)];
         }
-        //Debug.Log("Goal(" + goalNodeId + ") is at: " + getNodePosition(goalNodeId) + ".");
         car.myOriginId = fromNodeId;
         car.myGoalId = goalNodeId;
         car.setSimulator(this);
         cars.Add(car);
     }
 
-
+    //Get a path from a vector3 position to another
     public List<Edge> pathFromTo(Vector3 position, Vector3 target)
     {
         Debug.Log("Looking for nodes corresponding to : " + position + " and " + target);
@@ -128,11 +122,13 @@ public class Simulator : MonoBehaviour
         return network.PathTo(startNodeId, endNodeId);
     }
 
+    //Get a path from a node to another
     public List<Edge> pathFromTo(int fromId, int toId)
     {
         return network.PathTo(fromId, toId);
     }
 
+    //Find the closest node to a vec3 position
     public int findClosestNodeId(Vector3 position)
     {
         int bestIndex = -1;
@@ -140,7 +136,6 @@ public class Simulator : MonoBehaviour
         for (int i = 0; i < network.nodes.Count; ++i)
         {
             float distance = (position - network.nodes[i].pos).magnitude;
-            //Debug.Log("Looking at node #" + i + ", distance: " + (position - getNodePosition(i)).magnitude + ", min: " + minDistance);
             if (distance < minDistance
                 && !network.nodes[i].isControlPoint && network.nodes[i].isActive)
             {
@@ -152,16 +147,19 @@ public class Simulator : MonoBehaviour
         return bestIndex;
     }
 
+    //Get the position of a node
     public Vector3 getNodePosition(int nodeId)
     {
         return network.nodes[nodeId].pos + transform.position;
     }
 
+    //Get a point on the curved edge, which point is decided by the progress t (goes from 0.0 to 1.0)
     public Vector3 getEdgePoint(Edge edge, float t)
     {
         return Bezier.BezierCurve(getNodePosition(edge.n0), getNodePosition(edge.c0), getNodePosition(edge.c1), getNodePosition(edge.n1), t);
     }
 
+    //Get a point on the curved edge, offset to the right of the car, to create two-lane-streets
     public Vector3 getEdgePointOffset(Edge edge, float t, Vector3 carRight)
     {
 
@@ -253,10 +251,11 @@ public class Simulator : MonoBehaviour
         return edge_check;
     }
 
+    //Use the traffic lights to decide if a traffic channel is open.
+    //if there is no traffic light there, return true.
     public bool isChannelOpen(int fromNodeId, int toNodeId, int viaNodeId, Car car)
     {
         bool foundTrafficLight = false;
-        //Debug.Log("isChannelOpen? trafficLights.count: " + trafficLights.Count);
         foreach (TrafficLight trafficLight in trafficLights)
         {
             if (trafficLight.nodeId == viaNodeId)
