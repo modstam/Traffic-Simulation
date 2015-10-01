@@ -13,7 +13,7 @@ public class Simulator : MonoBehaviour
 
     [SerializeField]
     Network network;
-    public List<Car> cars; //All the cars of the simulation
+
     public List<int> trafficLightNodes; //Input in editor which nodes are to have traffic lights
     private List<TrafficLight> trafficLights;
     public float trafficLightChangeFrequency = 4f; //Input in editor how often the traffic lights change
@@ -22,13 +22,15 @@ public class Simulator : MonoBehaviour
 
     public List<Rigidbody> carPrefabs; //The different types of cars to spawn
     public int carsToSpawn = 0; //How many cars that should be spawned
-    private int carsSpawned = 0; //How many cars we have spawned
+    public int carsSpawned = 0; //How many cars we have spawned
     public float carSpawnIntensity = 1f; // how often we spawn new cars in seconds
     private float timeSinceCarSpawn = 0f;
     private int spawnEndNode; //the node from which we last spawned a car
     public float laneWidth = 1.5f; //the width of the lanes
 
-    void Awake()
+	public List<Car> cars; //All the cars of the simulation
+	
+	void Awake()
     {
         if (!Application.isPlaying)
         {
@@ -109,7 +111,10 @@ public class Simulator : MonoBehaviour
         car.myOriginId = fromNodeId;
         car.myGoalId = goalNodeId;
         car.setSimulator(this);
-        cars.Add(car);
+		if (cars.Count >= carsSpawned)
+			cars [carsSpawned - 1] = car;
+		else
+			cars.Add (car);
     }
 
     //Get a path from a vector3 position to another
@@ -270,6 +275,24 @@ public class Simulator : MonoBehaviour
 
         return !foundTrafficLight; //return true if traffic light is not found
     }
+
+	public void setNumCars(int input){
+		if (carsSpawned > input) {
+
+			Debug.Log("Destroying " + (cars.Count - input) + "cars"); 
+			for (int i = input; i < carsSpawned; ++i) {
+				if(cars[i]==null) continue;
+				Destroy (cars [i].gameObject);
+			}
+	
+			carsSpawned = input;
+		} 
+		carsToSpawn = input;
+	}
+
+	public void setSpawnInterval(float input){
+		carSpawnIntensity = input;
+	}
 
 
 }
