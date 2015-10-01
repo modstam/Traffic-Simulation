@@ -16,6 +16,8 @@ public class TrafficLight {
     private List<Car>[] waitingCars; //waitingCars[2] are the cars waiting for channel 2 to open.
 
     public float frequency; //how often the traffic lights change
+    public float changeTime = 3f; //time between a channel closing and the next one opening
+    bool changing = false; //whether or not the traffic light is currently chaning
     private float timeSinceChange;
 
 
@@ -36,7 +38,7 @@ public class TrafficLight {
                 index++;
             }
         }
-        printChannels();
+        //printChannels();
 
         waitingCars = new List<Car>[channels.Length];
         for (int i = 0; i < channels.Length; i++)
@@ -54,14 +56,23 @@ public class TrafficLight {
     // This is the method that rotates the open channels, and notifies cars.
 	public void update (float deltaTime) {
         timeSinceChange += deltaTime;
-        if (timeSinceChange > frequency)
+        if(changing && timeSinceChange > changeTime)
         {
-            timeSinceChange = 0;
-            openChannel = (openChannel < channels.Length - 1) ? openChannel + 1 : 0;
+            //Debug.Log("Done changin!");
+            timeSinceChange = 0f;
+            changing = false;
             foreach (Car car in waitingCars[openChannel])
             {
                 car.OnGreenLight(); //notify the cars waiting for this openChannel
             }
+        }
+        if (!changing && timeSinceChange > frequency)
+        {
+            //Debug.Log("Changing!");
+            timeSinceChange = 0f;
+            changing = true;
+            openChannel = (openChannel < channels.Length - 1) ? openChannel + 1 : 0;
+            
             //Debug.Log("Changing trafficlight #" + nodeId + " to open [" + channels[openChannel].x + " <-> " + channels[openChannel].y + "].");
         }
 	}
@@ -83,14 +94,13 @@ public class TrafficLight {
             }
             
         }
-        //add car to waitingCars[its desired channel]
         return false;
     }
 
     //simply check if a channel is open.
     public bool isOpen(int nodeFrom, int nodeTo)
     {
-        if(channels[openChannel].containsBoth(nodeFrom, nodeTo))
+        if(!changing && channels[openChannel].containsBoth(nodeFrom, nodeTo))
         {
             return true;
         } else

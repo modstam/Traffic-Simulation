@@ -46,28 +46,28 @@ public class Car : MonoBehaviour
 		{
 			listString[i] = myPath[i].ToString();
 		}
-		Debug.Log("Found path from " + myPath[0].n0 + " to " + myPath[myPath.Count - 1].n1 + "; List size: " + myPath.Count + ": " + string.Join(", ", listString));
+		//Debug.Log("Found path from " + myPath[0].n0 + " to " + myPath[myPath.Count - 1].n1 + "; List size: " + myPath.Count + ": " + string.Join(", ", listString));
 		curEdgeIndex = 0;
 		
         //Start the travling of the first path.
 		if (!myPath[0].reverse)
 		{
 			myOriginId = myPath[0].n0;
-			TraverseEdge(myPath[0]);
+			TraverseEdge(myPath[0], myPath[1]);
 		}
 		else
 		{
 			myOriginId = myPath[0].n1;
-			TraverseEdge(myPath[0]);
+			TraverseEdge(myPath[0], myPath[1]);
 		}
 	}
 	
 
 	//Use the carControl to traverse an edge
-	public void TraverseEdge(Edge edge)
+	public void TraverseEdge(Edge edge, Edge nextEdge)
 	{
         float edgeTime = CAR_EDGE_TIME;
-		carControl.TraverseEdge(edge, edgeTime);
+		carControl.TraverseEdge(edge, nextEdge, edgeTime);
 	}
 	
 	public void setPosition(Vector3 pos)
@@ -85,9 +85,9 @@ public class Car : MonoBehaviour
 	{
 		return simulator.getEdgePointOffset(edge, t, carRotation * Vector3.right);
 	}
-	
+
     //Use the simulator to get a position of a node.
-	public Vector3 getNodePosition(int nodeId)
+    public Vector3 getNodePosition(int nodeId)
 	{
 		return simulator.getNodePosition(nodeId);
 	}
@@ -140,7 +140,7 @@ public class Car : MonoBehaviour
             {
                 collCount = 0;
                 checkStatus = false;
-                carControl.delayedResume(); //resume the cars movement
+                //carControl.resume(); //resume the cars movement
             }
         } else
         {
@@ -165,10 +165,13 @@ public class Car : MonoBehaviour
 		      || (carControl.edgeProgress > CarControl.EDGE_PROGRESS_REQ) ))
 		{
 			curEdgeIndex += 1;
-			if (!(curEdgeIndex >= myPath.Count)) //If we havn't reached end of path...
+			if (curEdgeIndex < myPath.Count) //If we havn't reached end of path...
 			{ //Traverse the next edge
 				trafficChannelChecked = false;
-				TraverseEdge(myPath[curEdgeIndex]);
+                if (curEdgeIndex+1 < myPath.Count)
+                    TraverseEdge(myPath[curEdgeIndex], myPath[curEdgeIndex+1]);
+                else
+                    TraverseEdge(myPath[curEdgeIndex], null);
 			} else
 			{ //... if we have reached the end, take a journey back to beginning.
 				int oldOrigin = myOriginId;
