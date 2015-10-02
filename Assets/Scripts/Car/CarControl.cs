@@ -43,7 +43,8 @@ public class CarControl : MonoBehaviour
     //Start edge travel a bit later
     private static float START_EDGE_PROGRESS = 0.1f;
 
-    private static float INTERSECT_DIFF = 0.03f;
+    private static float INTERSECT_DIFF = 0.02f;
+    private static float RIGHT_TURN_MIN_VAL = 0.1f;
 
     // Use this for initialization
     void Start()
@@ -78,7 +79,6 @@ public class CarControl : MonoBehaviour
     void Update()
     {
         //DrawCheckTurnDirection();
-        //Debug.DrawLine(transform.position, new Vector3(-71, 0.5f, 200), Color.magenta);
         if (!paused && traversing)
         {
             if ((!goingReverse && edgeProgress > EDGE_PROGRESS_REQ) || //finnished
@@ -225,7 +225,7 @@ public class CarControl : MonoBehaviour
             Vector3 e00, e01, e10, e11;
             if (nextEdge.reverse)
             {
-                e00 = myCar.getEdgePointOffset(nextEdge, 1, transform.rotation);
+                e00 = myCar.getEdgePointOffset(nextEdge, 0.97f, transform.rotation);
                 e01 = myCar.getEdgePointOffset(nextEdge, 1 - (START_EDGE_PROGRESS), Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c1) - transform.position)));
             }
             else
@@ -236,8 +236,8 @@ public class CarControl : MonoBehaviour
 
             if (curEdge.reverse)
             {
-                e10 = myCar.getEdgePointOffset(curEdge,(1 - EDGE_PROGRESS_REQ), transform.rotation);
-                e11 = myCar.getEdgePointOffset(curEdge,  0, transform.rotation);
+                e10 = myCar.getEdgePointOffset(curEdge, (1 - EDGE_PROGRESS_REQ), transform.rotation);
+                e11 = myCar.getEdgePointOffset(curEdge, 0, transform.rotation);
             }
             else
             {
@@ -248,9 +248,12 @@ public class CarControl : MonoBehaviour
 
 
             Vector3 e0cp, e1cp;
-            ClosestPointsOnTwoLines(out e0cp, out e1cp, e00, e01, e10, e11);
+            //ClosestPointsOnTwoLines(out e0cp, out e1cp, e00, e01, e10, e11);
+            Vector3 r = transform.rotation * Vector3.right + transform.position;
+            Vector3 l = transform.rotation * Vector3.left + transform.position;
 
-            if ((e1cp - e0cp).magnitude < INTERSECT_DIFF)
+            //if ((e1cp - e0cp).magnitude < INTERSECT_DIFF)
+            if ((e01 - r).magnitude > (e01 - l).magnitude)
             { //If we are turning left
                 Debug.Log("Gon turn left!");
                 nextEdgeStartProgress = 0;
@@ -260,7 +263,9 @@ public class CarControl : MonoBehaviour
                 Debug.Log("Gon turn right!");
                 nextEdgeStartProgress = START_EDGE_PROGRESS;
             }
+            Debug.Log("TurnDiff: " + (e11 - e00).magnitude);
         }
+
     }
 
     void DrawCheckTurnDirection()
@@ -290,11 +295,20 @@ public class CarControl : MonoBehaviour
                 e11 = myCar.getEdgePointOffset(curEdge, 1, transform.rotation);
             }
 
-            Debug.DrawLine(e00, e01, Color.red);
-            Debug.DrawLine(e10, e11, Color.green);
+            //Vector3 localRight = transform.worldToLocalMatrix.MultiplyVector(transform.right);
+            Vector3 r = transform.rotation * Vector3.right + transform.position;
+
+            Vector3 l = transform.rotation * Vector3.left + transform.position;
+
+
+            Debug.DrawLine(r, e01, Color.red);
+            //Debug.DrawLine(e10, e11, Color.green);
+            Debug.DrawLine(l, e01, Color.magenta);
+            // Debug.DrawLine(e10, e01, Color.magenta);
+            Debug.Log("TurnDiffo: " + (e11 - e00).magnitude);
             e11 = myCar.getEdgePointOffset(curEdge, 1, transform.rotation);
-            Debug.DrawLine(transform.position, e11);
-            Debug.DrawLine(transform.position, myCar.getEdgePointOffset(curEdge,1, transform.rotation), Color.magenta);
+           // Debug.DrawLine(transform.position, e11);
+            //Debug.DrawLine(transform.position, myCar.getEdgePointOffset(curEdge,1, transform.rotation), Color.magenta);
         }
     }
 
