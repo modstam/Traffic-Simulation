@@ -84,7 +84,7 @@ public class CarControl : MonoBehaviour
             if ((!goingReverse && edgeProgress > EDGE_PROGRESS_REQ) || //finnished
                 goingReverse && edgeProgress < 1 - EDGE_PROGRESS_REQ)
             {
-                Debug.Log("GON STOP!");
+                //Debug.Log("GON STOP!");
                 checkTurnDirection();
                 Stop();
             }
@@ -169,7 +169,7 @@ public class CarControl : MonoBehaviour
 			
 
             //Find out where the next edge starts
-            Debug.Log("transferEnd, NextStartProg: " + nextEdgeStartProgress);
+            //Debug.Log("transferEnd, NextStartProg: " + nextEdgeStartProgress);
             if (edge.reverse) transferEnd = myCar.getEdgePointOffset(edge, (1 - nextEdgeStartProgress), Quaternion.LookRotation((myCar.getNodePosition(edge.c1) - transform.position).normalized));
 			else transferEnd = myCar.getEdgePointOffset(edge, nextEdgeStartProgress, Quaternion.LookRotation((myCar.getNodePosition(edge.c0) - transform.position).normalized));
 
@@ -218,137 +218,62 @@ public class CarControl : MonoBehaviour
         rotationUpdateCounter = 0;
     }
 
+    //Determine if the car is turning left or right
+    //Important to avoid collisions with cars traveling the oposite direction in the turn
+    //cars turning right will take an inner curve, while left turns generates outer, larger turns.
     void checkTurnDirection()
     {
         if (nextEdge != null)
         {
-            Vector3 e00, e01, e10, e11;
+            Vector3 targetRoad; //A location at START_EDGE_PROGRESS % on the next edge.
             if (nextEdge.reverse)
             {
-                e00 = myCar.getEdgePointOffset(nextEdge, 0.97f, transform.rotation);
-                e01 = myCar.getEdgePointOffset(nextEdge, 1 - (START_EDGE_PROGRESS), Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c1) - transform.position)));
+                targetRoad = myCar.getEdgePointOffset(nextEdge, 1 - (START_EDGE_PROGRESS), Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c1) - transform.position)));
             }
             else
             {
-                e00 = myCar.getEdgePointOffset(nextEdge, 0, transform.rotation);
-                e01 = myCar.getEdgePointOffset(nextEdge, START_EDGE_PROGRESS, Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c0) - transform.position)));
+                targetRoad = myCar.getEdgePointOffset(nextEdge, START_EDGE_PROGRESS, Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c0) - transform.position)));
             }
 
-            if (curEdge.reverse)
-            {
-                e10 = myCar.getEdgePointOffset(curEdge, (1 - EDGE_PROGRESS_REQ), transform.rotation);
-                e11 = myCar.getEdgePointOffset(curEdge, 0, transform.rotation);
-            }
-            else
-            {
-                e10 = myCar.getEdgePointOffset(curEdge, EDGE_PROGRESS_REQ, transform.rotation);
-                e11 = myCar.getEdgePointOffset(curEdge, 1, transform.rotation);
-            }
-
-
-
-            Vector3 e0cp, e1cp;
-            //ClosestPointsOnTwoLines(out e0cp, out e1cp, e00, e01, e10, e11);
             Vector3 r = transform.rotation * Vector3.right + transform.position;
             Vector3 l = transform.rotation * Vector3.left + transform.position;
 
-            //if ((e1cp - e0cp).magnitude < INTERSECT_DIFF)
-            if ((e01 - r).magnitude > (e01 - l).magnitude)
+            if ((targetRoad - r).magnitude > (targetRoad - l).magnitude)
             { //If we are turning left
-                Debug.Log("Gon turn left!");
+                //Debug.Log("Gon turn left!");
                 nextEdgeStartProgress = 0;
             }
             else
             { //If we are turning left
-                Debug.Log("Gon turn right!");
+                //Debug.Log("Gon turn right!");
                 nextEdgeStartProgress = START_EDGE_PROGRESS;
             }
-            Debug.Log("TurnDiff: " + (e11 - e00).magnitude);
         }
 
     }
 
+    //Debug drawing lines for determening turn diretion.
     void DrawCheckTurnDirection()
     {
         if (nextEdge != null)
         {
-            Vector3 e00, e01, e10, e11;
+            Vector3 targetRoad;
             if (nextEdge.reverse)
             {
-                e00 = myCar.getEdgePointOffset(nextEdge, 0.97f, transform.rotation);
-                e01 = myCar.getEdgePointOffset(nextEdge, 1 - (START_EDGE_PROGRESS), Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c1) - transform.position)));
+                targetRoad = myCar.getEdgePointOffset(nextEdge, 1 - (START_EDGE_PROGRESS), Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c1) - transform.position)));
             }
             else
             {
-                e00 = myCar.getEdgePointOffset(nextEdge, 0, transform.rotation);
-                e01 = myCar.getEdgePointOffset(nextEdge, START_EDGE_PROGRESS, Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c0) - transform.position)));
-            }
-
-            if (curEdge.reverse)
-            {
-                e10 = myCar.getEdgePointOffset(curEdge, (1 - EDGE_PROGRESS_REQ), transform.rotation);
-                e11 = myCar.getEdgePointOffset(curEdge, 0, transform.rotation);
-            }
-            else
-            {
-                e10 = myCar.getEdgePointOffset(curEdge, EDGE_PROGRESS_REQ, transform.rotation);
-                e11 = myCar.getEdgePointOffset(curEdge, 1, transform.rotation);
+                targetRoad = myCar.getEdgePointOffset(nextEdge, START_EDGE_PROGRESS, Quaternion.LookRotation((myCar.getNodePosition(nextEdge.c0) - transform.position)));
             }
 
             //Vector3 localRight = transform.worldToLocalMatrix.MultiplyVector(transform.right);
             Vector3 r = transform.rotation * Vector3.right + transform.position;
-
             Vector3 l = transform.rotation * Vector3.left + transform.position;
 
 
-            Debug.DrawLine(r, e01, Color.red);
-            //Debug.DrawLine(e10, e11, Color.green);
-            Debug.DrawLine(l, e01, Color.magenta);
-            // Debug.DrawLine(e10, e01, Color.magenta);
-            Debug.Log("TurnDiffo: " + (e11 - e00).magnitude);
-            e11 = myCar.getEdgePointOffset(curEdge, 1, transform.rotation);
-           // Debug.DrawLine(transform.position, e11);
-            //Debug.DrawLine(transform.position, myCar.getEdgePointOffset(curEdge,1, transform.rotation), Color.magenta);
-        }
-    }
-
-    //Two non-parallel lines which may or may not touch each other have a point on each line which are closest
-    //to each other. This function finds those two points. If the lines are not parallel, the function 
-    //outputs true, otherwise false. Source: http://wiki.unity3d.com/index.php/3d_Math_functions
-    public static bool ClosestPointsOnTwoLines(out Vector3 closestPointLine1, out Vector3 closestPointLine2,
-        Vector3 linePoint1, Vector3 lineVec1, Vector3 linePoint2, Vector3 lineVec2)
-    {
-
-        closestPointLine1 = Vector3.zero;
-        closestPointLine2 = Vector3.zero;
-
-        float a = Vector3.Dot(lineVec1, lineVec1);
-        float b = Vector3.Dot(lineVec1, lineVec2);
-        float e = Vector3.Dot(lineVec2, lineVec2);
-
-        float d = a * e - b * b;
-
-        //lines are not parallel
-        if (d != 0.0f)
-        {
-
-            Vector3 r = linePoint1 - linePoint2;
-            float c = Vector3.Dot(lineVec1, r);
-            float f = Vector3.Dot(lineVec2, r);
-
-            float s = (b * f - c * e) / d;
-            float t = (a * f - c * b) / d;
-
-            closestPointLine1 = linePoint1 + lineVec1 * s;
-            closestPointLine2 = linePoint2 + lineVec2 * t;
-            Debug.Log("Found closest points! d: " + (closestPointLine2 - closestPointLine1).magnitude);
-            return true;
-        }
-
-        else
-        {
-            Debug.Log("Lines are parallel!");
-            return false;
+            Debug.DrawLine(r, targetRoad, Color.red);
+            Debug.DrawLine(l, targetRoad, Color.magenta);
         }
     }
 

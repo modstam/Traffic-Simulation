@@ -17,6 +17,7 @@ public class Car : MonoBehaviour
 	public int myGoalId; //The node ID to which the car is trying to go
 	private float trafficPauseProgress = 0.85f; //Check if traffic light is green at this distance.
 	bool trafficChannelChecked = false; //Whether the car is at a traffic light and has checked if it's green.
+    bool waitingForGreen = false; //Waiting for green traffic light
 
     public int collCount = 0; //The number of currently colliding cars
 
@@ -24,7 +25,7 @@ public class Car : MonoBehaviour
 
     public Transform myBody; //The body of the car
     public Transform myCheck; //A point in front of the car, used for checking collisions..
-    public static float checkRadius = 0.25f; //.. in this radius
+    public static float checkRadius = 0.10f; //.. in this radius
     public bool checkStatus = false; //if we found any collisions there
 	
 	void Start()
@@ -125,10 +126,12 @@ public class Car : MonoBehaviour
             //Check if the traffic light is green.
 			if (simulator.isChannelOpen(firstNodeIndex, secondNodeIndex, viaNodeIndex, this))
 			{
-				//It it is, continue going...
+                //It it is, continue going...
+                waitingForGreen = false;
 			}
 			else
 			{   //If not, stop the car
+                waitingForGreen = true;
 				carControl.pause();
 			}
 		}
@@ -136,11 +139,16 @@ public class Car : MonoBehaviour
         //Check if the car is standing still for no reason, with an apparantly open path in front of it.
         if(!Physics.CheckSphere(myCheck.position, checkRadius))
         {   
-            if (collCount > 0)
-            {
+            //if (collCount > 0)
+            //{
                 collCount = 0;
                 checkStatus = false;
-                //carControl.resume(); //resume the cars movement
+            //carControl.resume(); //resume the cars movement
+            //}
+
+            if(!waitingForGreen)
+            {
+                carControl.resume(); //resume the cars movement
             }
         } else
         {
@@ -156,6 +164,8 @@ public class Car : MonoBehaviour
         // resume if we don't have a car infront of us
         if(collCount <= 0)
         carControl.resume();
+
+        waitingForGreen = false;
 	}
 	
 	public void onStop()
@@ -201,7 +211,7 @@ public class Car : MonoBehaviour
             collCount--;
             if (collCount < 0)
                 collCount = 0;
-            carControl.delayedResume();
+            //carControl.delayedResume();
 		}
 	}
 }

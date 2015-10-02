@@ -16,7 +16,7 @@ public class TrafficLight {
     private List<Car>[] waitingCars; //waitingCars[2] are the cars waiting for channel 2 to open.
 
     public float frequency; //how often the traffic lights change
-    public float changeTime = 3f; //time between a channel closing and the next one opening
+    public float changeTime = 1f; //time between a channel closing and the next one opening
     bool changing = false; //whether or not the traffic light is currently chaning
     private float timeSinceChange;
 
