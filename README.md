@@ -7,7 +7,6 @@ Kalle Sederblad <br>
 Måns Odstam <br>
 
 <a href="https://tribestar.wordpress.com/"> Project blog <a> <br>
-<br>
 
 <a href="https://www.youtube.com/watch?v=F8chP-TzXLg"> Demo video <a> <br>
 
