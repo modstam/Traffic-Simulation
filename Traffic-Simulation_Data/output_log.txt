@@ -1,0 +1,56 @@
+Initialize engine version: 5.1.2f1 (afd2369b692a)
+[VRDevice] Successfully created device oculus.
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 980 Ti (ID=0x17c8)
+    Vendor:   NVIDIA
+    VRAM:     3072 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\Assembly-CSharp-firstpass.dll (this message is harmless)
+Loading F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\Assembly-CSharp-firstpass.dll into Unity Child Domain
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.Networking.dll (this message is harmless)
+Loading F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.Analytics.dll (this message is harmless)
+Loading F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\UnityEngine.Analytics.dll into Unity Child Domain
+- Completed reload, in  0.116 seconds
+desktop: 2560x1440 144Hz; virtual: 5560x1920 at -1920,-254
+<RI> Initializing input.
+<RI> Input initialized.
+<RI> Initialized touch support.
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\System.Core.dll (this message is harmless)
+Platform assembly: F:\GitHub\Traffic-Simulation\Traffic-Simulation_Data\Managed\System.dll (this message is harmless)
+Deserialized edges
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 65)
+
+[Compositor] ERROR: Compositor failed to initialize.
+ 
+(Filename:  Line: 54)
+
+Bad config or LibOVR not found. VR disabled.
+ 
+(Filename:  Line: 368)
+
+Could not set Oculus caps. VR disabled.
+ 
+(Filename:  Line: 940)
+
+Updating number of cars to 50
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 65)
+
+Updating spawn interval to 0.1
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 65)
+
+Updating number of cars to 500
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 65)
+

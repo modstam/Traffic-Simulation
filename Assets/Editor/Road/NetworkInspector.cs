@@ -89,9 +89,10 @@ public class NetworkInspector : Editor { //Use editor instead of monobehaviour t
 	private Vector3 ShowControlNode(Node node, Edge edge){
 		Vector3 point = handleTransform.TransformPoint(node.pos);
 		Handles.color = Color.magenta;
+		float size = HandleUtility.GetHandleSize(point);
 
 		//Check if we pressed the control node
-		if (Handles.Button(point, handleRotation, handleSize, pickSize, Handles.DotCap)) {
+		if (Handles.Button(point, handleRotation, size* handleSize, size*pickSize, Handles.DotCap)) {
 			selectedEdge = edge;
 			selectedNode = node;
 			Repaint ();
